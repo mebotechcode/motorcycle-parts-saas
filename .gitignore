@@ -1,0 +1,15 @@
+node_modules
+.next
+.env.local
+.env*.local
+supabase/.temp
+supabase/.branches
+*.zip
+.DS_Store
+.env
+.env.*
+!.env.example
+**/supabase/.temp/
+**/supabase/.branches/
+node_modules/
+.next/

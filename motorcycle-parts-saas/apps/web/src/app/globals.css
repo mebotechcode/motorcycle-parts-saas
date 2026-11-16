@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-charcoal font-body text-offwhite antialiased;
+}
+
+h1,
+h2,
+h3 {
+  @apply font-display uppercase tracking-wide;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* anchor links on the landing page stop below the sticky header */
+section[id] {
+  scroll-margin-top: 5rem;
+}
+
+/* never let a page scroll sideways on small screens */
+html,
+body {
+  overflow-x: hidden;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+  }
+}

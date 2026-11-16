@@ -1,0 +1,15 @@
+/* Naf's Motor Spares — brand tokens (colours sampled from the logo) */
+:root {
+  --brand-charcoal: #111214;   /* backgrounds */
+  --brand-orange:   #FF5B14;   /* primary actions, highlights */
+  --brand-offwhite: #F5F5F2;   /* text on dark, light surfaces */
+
+  /* supporting shades (derived) */
+  --brand-charcoal-2: #1A1C1F; /* cards on charcoal */
+  --brand-charcoal-3: #26292D; /* borders, hover */
+  --brand-orange-hover: #E64D0A;
+  --brand-muted: #9A9A99;      /* secondary text on charcoal */
+
+  --font-display: "Barlow Condensed", "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
