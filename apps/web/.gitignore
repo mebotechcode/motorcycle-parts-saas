@@ -8,3 +8,9 @@ next-env.d.ts
 
 **/supabase/.temp/
 **/supabase/.branches/
+backups/
+# TypeScript build artifacts
+*.tsbuildinfo
+
+# Local package backups
+package.json.before-security-fix
