@@ -7,18 +7,20 @@ import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { qty as fmtQty } from '@/lib/inventory'
 import { PRESET_LABEL, downloadCSV, periodRange, type Preset } from '@/lib/reports'
+import { getLang, t as tr } from '@/lib/i18n'
 
 type Tab = 'overview' | 'products' | 'stock' | 'team'
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'overview', label: 'Overview' },
-  { key: 'products', label: 'Products' },
-  { key: 'stock', label: 'Stock' },
-  { key: 'team', label: 'Team & branches' },
-]
 
 export default function ReportsPage() {
   const { claims } = useSession()
   const manager = claims.tenant_role === 'owner' || claims.tenant_role === 'manager'
+  const lang = getLang()
+  const TABS: { key: Tab; label: string }[] = [
+    { key: 'overview', label: tr('tabOverview', lang) },
+    { key: 'products', label: tr('tabProducts', lang) },
+    { key: 'stock', label: tr('tabStock', lang) },
+    { key: 'team', label: tr('tabTeam', lang) },
+  ]
 
   const [tab, setTab] = useState<Tab>('overview')
   const [preset, setPreset] = useState<Preset>('month')
@@ -106,8 +108,8 @@ export default function ReportsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-4xl font-bold">Reports</h1>
-        <p className="text-sm text-muted">How the shop is doing. Profit uses the buying price recorded at the time of each sale.</p>
+        <h1 className="text-4xl font-bold">{tr('reportsTitle', lang)}</h1>
+        <p className="text-sm text-muted">{tr('reportsSub', lang)}</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -218,7 +220,7 @@ export default function ReportsPage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-xl font-bold">Day by day</h2>
               <Button variant="ghost" onClick={() => downloadCSV(`daily-${from}-to-${to}.csv`, [['Date', 'Sales', 'Net sales', 'Cost of goods', 'Gross profit', 'Expenses', 'Net profit'], ...daily.map((d) => [d.day, d.sales_count, d.net_sales, d.cogs, d.gross_profit, d.expenses, Number(d.gross_profit) - Number(d.expenses)])])}>
-                Download CSV
+                {tr('downloadCsv', lang)}
               </Button>
             </div>
             <div className="overflow-x-auto">
@@ -278,7 +280,7 @@ export default function ReportsPage() {
                   </Select>
                 </div>
                 <Button variant="ghost" onClick={() => downloadCSV(`best-sellers-${from}-to-${to}.csv`, [['Product', 'Code', 'Sold', 'Sales', 'Profit'], ...top.map((r) => [r.name, r.sku, r.qty, r.revenue, r.profit])])}>
-                  Download CSV
+                  {tr('downloadCsv', lang)}
                 </Button>
               </div>
             </div>
@@ -325,7 +327,7 @@ export default function ReportsPage() {
                   </Select>
                 </div>
                 <Button variant="ghost" onClick={() => downloadCSV(`slow-stock-${slowDays}days.csv`, [['Product', 'Code', 'In stock', 'Cost each', 'Money tied up', 'Last sold'], ...slow.map((r) => [r.name, r.sku, r.stock_qty, r.cost_price, r.stock_value, r.last_sold_at ?? 'never'])])}>
-                  Download CSV
+                  {tr('downloadCsv', lang)}
                 </Button>
               </div>
             </div>
@@ -383,7 +385,7 @@ export default function ReportsPage() {
           </div>
           <div className="flex justify-end">
             <Button variant="ghost" onClick={() => downloadCSV('stock-value.csv', [['Category', 'Products', 'Units', 'At cost', 'At selling prices'], ...stockRows.map((r) => [r.category, r.items, r.units, r.cost_value, r.retail_value])])}>
-              Download CSV
+              {tr('downloadCsv', lang)}
             </Button>
           </div>
           <div className="overflow-x-auto">
@@ -421,7 +423,7 @@ export default function ReportsPage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-xl font-bold">Sales by staff</h2>
               <Button variant="ghost" onClick={() => downloadCSV(`staff-${from}-to-${to}.csv`, [['Staff', 'Sales', 'Total', 'Discounts given', 'Cancelled', 'Offline needing a check'], ...staff.map((r) => [names[r.user_id] ?? 'Staff', r.sales_count, r.revenue, r.discounts, r.voided, r.flagged])])}>
-                Download CSV
+                {tr('downloadCsv', lang)}
               </Button>
             </div>
             {staff.length === 0 ? (

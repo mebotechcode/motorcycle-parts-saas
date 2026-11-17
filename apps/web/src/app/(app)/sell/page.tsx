@@ -21,6 +21,9 @@ import {
   type Customer,
   type Tier,
 } from '@/lib/pos'
+import { getLang, t as tr } from '@/lib/i18n'
+import { binLabel, searchProducts } from '@/lib/search'
+import { sendStkPush } from '@/lib/mpesa'
 
 export default function SellPage() {
   const router = useRouter()
@@ -45,6 +48,12 @@ export default function SellPage() {
   const [bankRef, setBankRef] = useState('')
   const [saleKey, setSaleKey] = useState(() => uuid())
   const [search, setSearch] = useState('')
+  const [mechanicId, setMechanicId] = useState('')
+  const [commission, setCommission] = useState('')
+  const [stkPhone, setStkPhone] = useState('')
+  const [stkBusy, setStkBusy] = useState(false)
+  const [stkInfo, setStkInfo] = useState('')
+  const lang = getLang()
 
   const [desktop, setDesktop] = useState(false)
   const [sheet, setSheet] = useState(false)
@@ -116,21 +125,9 @@ export default function SellPage() {
   }, [loaded, lines, tier, customer, billDiscount, saleKey])
 
   // ---------- product search (on the device: instant, works offline)
-  const results = useMemo(() => {
-    const raw = search.trim()
-    if (raw.length < 2) return [] as CProduct[]
-    const words = raw.toLowerCase().split(/\s+/)
-    const out: CProduct[] = []
-    for (const p of products) {
-      if (!p.is_active || p.deleted_at) continue
-      const hay = `${p.name} ${p.sku} ${p.part_number ?? ''} ${p.brand_name ?? ''}`.toLowerCase()
-      if (words.every((w) => hay.includes(w)) || p.barcodes?.includes(raw)) {
-        out.push(p)
-        if (out.length >= 12) break
-      }
-    }
-    return out
-  }, [search, products])
+  // Matches name, SKU, part number, brand, slang aliases (kenda, coil...)
+  // and bike fit. Barcode scan wins immediately.
+  const results = useMemo(() => searchProducts(products as any, search, 12) as CProduct[], [search, products])
 
   const addProduct = useCallback(
     (p: CProduct) => {
@@ -295,6 +292,9 @@ export default function SellPage() {
       discount_total: t.disc,
       items: lines.map((l) => ({ product_id: l.product_id, qty: Number(l.qty), unit_price: Number(l.price) })),
       payments,
+      // fundi referral rides along so offline sales settle commissions on sync
+      mechanic_id: mechanicId || null,
+      mechanic_commission: Number(commission || 0),
     }
 
     setBusy(true)
@@ -313,6 +313,16 @@ export default function SellPage() {
         return
       }
       const id = (data as any).sale_id
+      // Mechanic referral (fundi commission) — recorded after the sale so
+      // offline sales keep working; failures never block the sale.
+      if (mechanicId && online) {
+        await supabase.rpc('set_sale_referral', { p_sale_id: id, p_mechanic_id: mechanicId, p_commission: Number(commission || 0) })
+      }
+      // Queue eTIMS transmission (offline-safe: drains when online)
+      if (tenant?.kra_pin) {
+        await supabase.rpc('queue_etims_invoice', { p_sale_id: id }).then(() => {})
+        supabase.functions.invoke('etims-submit', { body: { sale_id: id } }).then(() => {})
+      }
       clearAll()
       router.push(`/sales/${id}?new=1`)
     } finally {
@@ -379,6 +389,20 @@ export default function SellPage() {
         online={online}
         onCreated={() => catalog.sync()}
       />
+
+      {/* Mechanic (fundi) referral + commission */}
+      <div className="grid grid-cols-2 gap-2 rounded-xl border border-charcoal-3 bg-charcoal p-3">
+        <Select label={tr('referredBy', lang)} value={mechanicId} onChange={(e) => setMechanicId(e.target.value)}>
+          <option value="">No fundi</option>
+          {(customers as any[]).filter((c: any) => c.customer_type === 'mechanic').map((c: any) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </Select>
+        <label className="block">
+          <span className="mb-1 block text-sm text-muted">{tr('commission', lang)}</span>
+          <input value={commission} inputMode="decimal" onChange={(e) => setCommission(e.target.value)} placeholder="0" className="w-full rounded-lg border border-charcoal-3 bg-charcoal-2 px-3 py-2.5 focus:border-brand focus:outline-none" />
+        </label>
+      </div>
 
       {lines.length === 0 ? (
         <p className="rounded-xl border border-dashed border-charcoal-3 p-6 text-center text-sm text-muted">No items yet. Search a part and tap it to add.</p>
@@ -473,14 +497,40 @@ export default function SellPage() {
             </label>
             <div className="grid grid-cols-2 gap-2">
               <label className="block">
-                <span className="mb-1 block text-sm text-muted">M-Pesa amount</span>
+                <span className="mb-1 block text-sm text-muted">{tr('mpesaAmount', lang)}</span>
                 <input value={mpesa} inputMode="decimal" onChange={(e) => setMpesa(e.target.value)} placeholder="0" className="w-full rounded-lg border border-charcoal-3 bg-charcoal px-3 py-2.5 focus:border-brand focus:outline-none" />
               </label>
               <label className="block">
-                <span className="mb-1 block text-sm text-muted">M-Pesa code</span>
+                <span className="mb-1 block text-sm text-muted">{tr('mpesaCode', lang)}</span>
                 <input value={mpesaCode} onChange={(e) => setMpesaCode(e.target.value.toUpperCase())} placeholder="e.g. SFK1A2B3C4" maxLength={12} className="w-full rounded-lg border border-charcoal-3 bg-charcoal px-3 py-2.5 uppercase focus:border-brand focus:outline-none" />
               </label>
             </div>
+            {/* STK Push: send a payment request to the customer's phone */}
+            {online && (
+              <div className="space-y-2 rounded-lg bg-charcoal p-3">
+                <div className="flex flex-wrap gap-2">
+                  <input value={stkPhone} onChange={(e) => setStkPhone(e.target.value)} placeholder="Customer phone e.g. 0712 345 678" className="min-w-0 flex-1 rounded-lg border border-charcoal-3 bg-charcoal-2 px-3 py-2.5 text-sm focus:border-brand focus:outline-none" />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={stkBusy || t.total <= 0}
+                    onClick={async () => {
+                      setStkBusy(true)
+                      setStkInfo('')
+                      const r = await sendStkPush({ phone: stkPhone, amount: t.total, branch_id: branchId, customer_id: customer?.id, invoke: (fn, body) => supabase.functions.invoke(fn, { body }) as any })
+                      setStkBusy(false)
+                      if (r.ok) {
+                        setMpesa(String(t.total))
+                        setStkInfo(tr('stkSent', lang))
+                      } else setError(r.error ?? 'STK Push failed')
+                    }}
+                  >
+                    {stkBusy ? 'Sending...' : tr('sendStk', lang)}
+                  </Button>
+                </div>
+                {stkInfo && <p className="text-xs text-emerald-300">{stkInfo}</p>}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-2">
               <label className="block">
                 <span className="mb-1 block text-sm text-muted">Bank amount</span>
@@ -551,7 +601,7 @@ export default function SellPage() {
                 onSearchEnter()
               }
             }}
-            placeholder="Search a part: name, code or scan a barcode"
+            placeholder={tr('searchPart', lang)}
             className="w-full rounded-xl border border-charcoal-3 bg-charcoal-2 px-4 py-3.5 text-lg placeholder:text-muted/60 focus:border-brand focus:outline-none"
           />
 
@@ -573,6 +623,7 @@ export default function SellPage() {
               {results.map((p) => {
                 const price = tier === 'wholesale' ? p.wholesale_price ?? p.selling_price : p.selling_price
                 const left = stockOf(p.id)
+                const bin = binLabel(p as any)
                 return (
                   <button type="button" key={p.id} onClick={() => addProduct(p)} className="flex items-center justify-between gap-3 rounded-xl border border-charcoal-3 bg-charcoal-2 p-3 text-left hover:border-brand/60">
                     <div className="min-w-0">
@@ -581,11 +632,15 @@ export default function SellPage() {
                         {p.sku}
                         {p.brand_name ? ` · ${p.brand_name}` : ''}
                       </div>
-                      {p.track_stock && left !== undefined && <div className={`text-xs ${left <= 0 ? 'text-red-300' : 'text-muted'}`}>{left <= 0 ? 'Out of stock here' : `${fmtQty(left)} in stock`}</div>}
+                      <div className="flex flex-wrap gap-x-2 text-xs">
+                        {p.track_stock && left !== undefined && <span className={left <= 0 ? 'text-red-300' : 'text-muted'}>{left <= 0 ? tr('outOfStock', lang) : `${fmtQty(left)} ${tr('inStock', lang)}`}</span>}
+                        {bin && <span className="rounded bg-brand/15 px-1.5 py-0.5 font-semibold text-brand">{bin}</span>}
+                        {(p.aliases ?? []).length > 0 && <span className="text-muted">aka {(p.aliases ?? []).slice(0, 3).join(', ')}</span>}
+                      </div>
                     </div>
                     <div className="shrink-0 text-right">
                       <div className="font-display text-xl font-bold text-brand">{money(price)}</div>
-                      <div className="text-xs text-muted">Tap to add</div>
+                      <div className="text-xs text-muted">{tr('tapToAdd', lang)}</div>
                     </div>
                   </button>
                 )

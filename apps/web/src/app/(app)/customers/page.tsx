@@ -103,6 +103,11 @@ export default function CustomersPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           {manager && (
+            <Link href="/customers/commissions" className="rounded-lg border border-charcoal-3 px-4 py-2.5 text-sm font-semibold hover:bg-charcoal-3">
+              Fundi commissions
+            </Link>
+          )}
+          {manager && (
             <Link href="/customers/remind" className="rounded-lg border border-charcoal-3 px-4 py-2.5 text-sm font-semibold hover:bg-charcoal-3">
               Remind debtors
             </Link>

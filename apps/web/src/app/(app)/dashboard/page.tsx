@@ -18,7 +18,33 @@ export default function DashboardPage() {
   const [owed, setOwed] = useState<{ total_owed: number; owing_count: number } | null>(null)
   const [profit, setProfit] = useState<any>(null)
   const [payable, setPayable] = useState<{ total_owed: number; owed_count: number } | null>(null)
+  const [etims, setEtims] = useState<{ queued: number; failed: number; submitted: number } | null>(null)
+  const [etimsBusy, setEtimsBusy] = useState(false)
+  const [etimsMessage, setEtimsMessage] = useState('')
   const canSeeBilling = claims.tenant_role === 'owner' || claims.tenant_role === 'manager'
+
+  const loadEtims = async () => {
+    const { data } = await supabase.rpc('etims_queue_summary')
+    if (data) setEtims(data as any)
+  }
+
+  async function transmitEtims() {
+    setEtimsBusy(true)
+    setEtimsMessage('')
+    const { data, error } = await supabase.functions.invoke('etims-submit', { body: { transmit_all: true } })
+    setEtimsBusy(false)
+    if (error) {
+      let msg = error.message
+      try {
+        msg = (await (error as any).context.json()).error ?? msg
+      } catch {}
+      setEtimsMessage(msg)
+    } else {
+      const d: any = data ?? {}
+      setEtimsMessage(d.message ?? `Done. ${d.submitted ?? 0} sent, ${d.failed ?? 0} still failing.`)
+    }
+    loadEtims()
+  }
 
   useEffect(() => {
     ;(async () => {
@@ -44,6 +70,7 @@ export default function DashboardPage() {
         const day = todayEAT()
         const pr = await supabase.rpc('report_profit', { p_from: day, p_to: day, p_branch: null })
         if (pr.data) setProfit(pr.data)
+        loadEtims()
       }
     })()
   }, [])
@@ -60,12 +87,39 @@ export default function DashboardPage() {
       </div>
 
       {canSeeBilling && sub?.status === 'trialing' && (
-        <Card className="border-brand/40">
-          <div className="text-sm text-muted">Free trial</div>
-          <div className="font-display text-2xl font-bold uppercase text-brand">
-            {daysLeft} day{daysLeft === 1 ? '' : 's'} left
+        <Link href="/billing">
+          <Card className="border-brand/40 hover:border-brand/60">
+            <div className="text-sm text-muted">Free trial · tap to pay and keep the till running</div>
+            <div className="font-display text-2xl font-bold uppercase text-brand">
+              {daysLeft} day{daysLeft === 1 ? '' : 's'} left
+            </div>
+            <div className="text-sm text-muted">Plan: {sub.plans?.name ?? 'Starter'} · pay with M-Pesa on the billing page</div>
+          </Card>
+        </Link>
+      )}
+
+      {canSeeBilling && etims && (etims.queued > 0 || etims.failed > 0) && (
+        <Card className={etims.failed > 0 ? 'border-red-500/40' : 'border-brand/40'}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-sm text-muted">KRA eTIMS queue</div>
+              <div className="text-lg font-bold">
+                {etims.queued > 0 && <span className="text-brand">{etims.queued} waiting to be sent</span>}
+                {etims.queued > 0 && etims.failed > 0 && <span className="text-muted"> · </span>}
+                {etims.failed > 0 && <span className="text-red-300">{etims.failed} failed</span>}
+              </div>
+              <div className="text-xs text-muted">{etims.submitted} already sent to KRA</div>
+            </div>
+            <button
+              type="button"
+              onClick={transmitEtims}
+              disabled={etimsBusy}
+              className="rounded-lg border border-charcoal-3 px-4 py-2 text-sm font-semibold hover:bg-charcoal-3 disabled:opacity-50"
+            >
+              {etimsBusy ? 'Sending…' : 'Transmit now'}
+            </button>
           </div>
-          <div className="text-sm text-muted">Plan: {sub.plans?.name ?? 'Starter'}</div>
+          {etimsMessage && <p className="mt-2 text-xs text-muted">{etimsMessage}</p>}
         </Card>
       )}
 
@@ -134,12 +188,14 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <Card>
-        <h2 className="text-xl font-bold">Coming next</h2>
-        <p className="mt-1 text-sm text-muted">
-          Expenses and daily cash-up reports, then profit reports and KRA eTIMS receipts.
-        </p>
-      </Card>
+      {canSeeBilling && (
+        <Card>
+          <h2 className="text-xl font-bold">Coming next</h2>
+          <p className="mt-1 text-sm text-muted">
+            KRA eTIMS receipt signing goes fully live once KRA onboards your devices — queued receipts send automatically when you are online. Need help? WhatsApp support.
+          </p>
+        </Card>
+      )}
     </div>
   )
 }

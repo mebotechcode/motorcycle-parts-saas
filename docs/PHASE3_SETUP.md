@@ -1,6 +1,6 @@
 # Phase 3 setup — step by step (Windows)
 
-Phase 3 adds: sign up, create your shop, invite staff by link, branches, and the first screens in the Naf's colours.
+Phase 3 adds: sign up, create your shop, invite staff by link, branches, and the first screens in the NafPOS colours.
 
 ## A. Get the files in the right place
 1. Download `motorcycle-parts-saas.zip`.

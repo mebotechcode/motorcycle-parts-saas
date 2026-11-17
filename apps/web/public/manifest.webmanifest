@@ -1,7 +1,7 @@
 {
-  "name": "Naf's Motor Spares",
-  "short_name": "Naf's",
-  "description": "Shop management for motorcycle spare parts shops",
+  "name": "NafPOS — Motor Spares POS",
+  "short_name": "NafPOS",
+  "description": "Offline-first point of sale and inventory for Kenyan motorcycle spare parts shops",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",

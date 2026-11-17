@@ -60,6 +60,13 @@ export const FIELDS: { key: string; label: string; names: string[] }[] = [
   { key: 'opening_stock', label: 'Stock', names: ['stock', 'opening stock', 'quantity', 'qty', 'in stock'] },
   { key: 'barcode', label: 'Barcode', names: ['barcode', 'barcodes'] },
   { key: 'fits', label: 'Fits bikes', names: ['fits', 'bikes', 'bike models', 'compatible bikes', 'compatibility'] },
+  { key: 'shelf_location', label: 'Shelf / bin location', names: ['shelf', 'shelf location', 'location'] },
+  { key: 'aisle', label: 'Aisle', names: ['aisle'] },
+  { key: 'rack', label: 'Rack', names: ['rack'] },
+  { key: 'bin', label: 'Bin / box', names: ['bin', 'box', 'bin box', 'box no'] },
+  { key: 'aliases', label: 'Also known as (slang)', names: ['aliases', 'also known as', 'aka', 'slang', 'local names', 'nicknames'] },
+  { key: 'hs_code', label: 'HS code', names: ['hs code', 'hscode', 'hs', 'kra code'] },
+  { key: 'etims_code', label: 'eTIMS item code', names: ['etims code', 'etims item', 'etims'] },
 ]
 
 const norm = (h: string) => h.toLowerCase().replace(/[_\-]+/g, ' ').replace(/\s+/g, ' ').trim()
@@ -117,6 +124,6 @@ export function buildRows(table: string[][]) {
 }
 
 export const TEMPLATE_CSV =
-  'sku,name,category,brand,quality,part_number,unit,selling_price,wholesale_price,cost_price,min_price,reorder_level,opening_stock,barcode,fits\n' +
-  'BP-001,Brake pad set - Boxer BM100,Brakes,Bajaj,genuine,,set,650,600,420,550,5,12,,Bajaj Boxer BM100\n' +
-  'SP-002,Spark plug,Electricals & Lighting,NGK,aftermarket,CR7HSA,pc,300,260,150,250,10,40,,Bajaj Boxer BM100; TVS HLX 125\n'
+  'sku,name,category,brand,quality,part_number,unit,selling_price,wholesale_price,cost_price,min_price,reorder_level,opening_stock,barcode,fits,shelf_location,aisle,rack,bin,aliases,hs_code\n' +
+  'BP-001,Brake pad set - Boxer BM100,Brakes,Bajaj,genuine,,set,650,600,420,550,5,12,,Bajaj Boxer BM100,Rack B - Box 14,A,B,14,brake pads;pads,8714.10.00\n' +
+  'SP-002,Spark plug,Electricals & Lighting,NGK,aftermarket,CR7HSA,pc,300,260,150,250,10,40,,Bajaj Boxer BM100; TVS HLX 125,Rack A - Box 02,A,A,02,plug;ngk plug,8511.10.00\n'

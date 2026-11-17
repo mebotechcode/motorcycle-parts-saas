@@ -18,7 +18,7 @@ Emails are sent through Brevo (free: 300 emails a day).
 3. **Get an API key:** click your name (top right) → **SMTP & API → API Keys → Generate a new API key**. Copy it (it starts with `xkeysib-`).
 4. Open a terminal in the **main** folder `motorcycle-parts-saas` and run this as ONE line, with your own values:
 ```
-npx supabase secrets set BREVO_API_KEY=xkeysib-PASTE-YOURS MAIL_FROM_EMAIL=you@gmail.com MAIL_FROM_NAME="Naf's Motor Spares" APP_URL=http://localhost:3000
+npx supabase secrets set BREVO_API_KEY=xkeysib-PASTE-YOURS MAIL_FROM_EMAIL=you@gmail.com MAIL_FROM_NAME="NafPOS" APP_URL=http://localhost:3000
 ```
 5. Deploy the email function:
 ```

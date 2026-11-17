@@ -1,6 +1,9 @@
 import { PAY_LABEL, money } from '@/lib/pos'
+import { etimsQrPayload, etimsQrDataUrl } from '@/lib/etims'
 
 // A paper-style receipt. White background so it prints and screenshots cleanly.
+// Shows the KRA eTIMS QR code (CU number + signature) when available, and
+// works for 58mm / 80mm thermal printers via browser print.
 export default function Receipt({
   sale,
   items,
@@ -22,6 +25,10 @@ export default function Receipt({
 }) {
   const voided = sale.status === 'voided'
   const vat = Number(sale.tax_total) > 0
+  const qrPayload = etimsQrPayload(sale, tenant)
+  // Generated locally (no network), so this works offline.
+  const qrDataUrl = etimsQrDataUrl(qrPayload)
+  const showQr = !voided && (sale.etims_status === 'submitted' || sale.etims_cu_number || tenant?.kra_pin)
   return (
     <div id="receipt" className="mx-auto w-full max-w-sm rounded-lg bg-white p-5 font-mono text-[13px] leading-snug text-black print:max-w-none print:rounded-none print:p-0">
       <div className="text-center">
@@ -51,6 +58,18 @@ export default function Receipt({
           <div className="flex justify-between">
             <span>Customer</span>
             <span>{customer.name}</span>
+          </div>
+        )}
+        {sale.etims_cu_number && (
+          <div className="flex justify-between">
+            <span>CU Invoice No</span>
+            <b>{sale.etims_cu_number}</b>
+          </div>
+        )}
+        {sale.etims_status === 'pending' && (
+          <div className="flex justify-between text-[12px]">
+            <span>eTIMS</span>
+            <span>Queued (will transmit when online)</span>
           </div>
         )}
       </div>
@@ -133,7 +152,25 @@ export default function Receipt({
         </div>
       )}
 
+      {showQr && (
+        <div className="mt-3 border-t border-dashed border-black pt-3 text-center">
+          {qrDataUrl ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qrDataUrl} alt="KRA eTIMS QR code" className="mx-auto h-28 w-28" />
+              <div className="mt-1 text-[11px]">Scan to verify with KRA</div>
+            </>
+          ) : (
+            // QR could not be encoded — never lose the payload silently
+            <div className="break-all text-[10px]">eTIMS: {qrPayload}</div>
+          )}
+          {sale.etims_receipt_signature && <div className="mt-1 break-all text-[10px]">Signature: {sale.etims_receipt_signature}</div>}
+          {sale.etims_internal_data && <div className="break-all text-[10px]">Internal Data: {sale.etims_internal_data}</div>}
+        </div>
+      )}
+
       <div className="mt-4 text-center text-[12px]">{tenant?.receipt_footer || 'Thank you for shopping with us!'}</div>
+      <div className="mt-1 text-center text-[10px] text-gray-600">Powered by NafPOS</div>
     </div>
   )
 }

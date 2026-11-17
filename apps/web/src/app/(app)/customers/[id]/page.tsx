@@ -8,7 +8,7 @@ import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import { uuid } from '@/lib/inventory'
 import { money, waNumber } from '@/lib/pos'
-import { LEDGER_LABEL, TYPE_LABEL, daysSince, type COverview } from '@/lib/customers'
+import { LEDGER_LABEL, TYPE_LABEL, daysSince, termsLabel, type COverview } from '@/lib/customers'
 
 type Entry = { id: string; entry_type: string; amount: number; note: string | null; sale_id: string | null; created_at: string }
 
@@ -37,7 +37,7 @@ export default function CustomerPage() {
   const [payKey, setPayKey] = useState(() => uuid())
 
   // details
-  const [f, setF] = useState({ name: '', phone: '', customer_type: 'retail', price_tier: 'retail', credit_limit: '', notes: '' })
+  const [f, setF] = useState({ name: '', phone: '', customer_type: 'retail', price_tier: 'retail', credit_limit: '', payment_terms_days: '0', boda_stage: '', notes: '' })
 
   // manager tools
   const [tool, setTool] = useState<'' | 'opening' | 'writeoff' | 'increase'>('')
@@ -69,6 +69,8 @@ export default function CustomerPage() {
       customer_type: cu.customer_type,
       price_tier: cu.price_tier,
       credit_limit: String(cu.credit_limit ?? 0),
+      payment_terms_days: String(cu.payment_terms_days ?? 0),
+      boda_stage: cu.boda_stage ?? '',
       notes: cu.notes ?? '',
     })
   }, [id, claims.all_branches, claims.branch_ids])
@@ -131,7 +133,7 @@ export default function CustomerPage() {
     setInfo('')
     if (f.name.trim().length < 2) return setError('Enter the name')
     setBusy('save')
-    const patch: any = { name: f.name.trim(), phone: f.phone.trim() || null, customer_type: f.customer_type, price_tier: f.price_tier, notes: f.notes.trim() || null }
+    const patch: any = { name: f.name.trim(), phone: f.phone.trim() || null, customer_type: f.customer_type, price_tier: f.price_tier, payment_terms_days: Number(f.payment_terms_days || 0), boda_stage: f.boda_stage.trim() || null, notes: f.notes.trim() || null }
     if (manager) patch.credit_limit = Number(f.credit_limit || 0)
     const { error } = await supabase.from('customers').update(patch).eq('id', id)
     setBusy('')
@@ -187,6 +189,8 @@ export default function CustomerPage() {
           <h1 className="text-4xl font-bold">{c.name}</h1>
           <p className="text-sm text-muted">
             {c.phone ?? 'No phone'} · {TYPE_LABEL[c.customer_type] ?? c.customer_type}
+            {(c.payment_terms_days ?? 0) > 0 && ` · ${termsLabel(c.payment_terms_days)}`}
+            {c.boda_stage ? ` · ${c.boda_stage}` : ''}
             {!c.is_active && ' · Hidden'}
           </p>
         </div>
@@ -347,6 +351,19 @@ export default function CustomerPage() {
               disabled={!manager}
               onChange={(e) => setF({ ...f, credit_limit: e.target.value })}
               hint={manager ? '0 = no credit' : 'Only the owner or a manager can change this'}
+            />
+            <Select label="Payment terms" value={f.payment_terms_days} onChange={(e) => setF({ ...f, payment_terms_days: e.target.value })}>
+              <option value="0">Pay now</option>
+              <option value="7">7 days</option>
+              <option value="14">14 days</option>
+              <option value="30">30 days</option>
+            </Select>
+            <Field
+              label="Boda stage / garage (optional)"
+              placeholder='e.g. "Stage 4 - Githurai"'
+              value={f.boda_stage}
+              onChange={(e) => setF({ ...f, boda_stage: e.target.value })}
+              hint="Used to group riders and fundis by stage"
             />
           </div>
           <Field label="Notes" value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} />

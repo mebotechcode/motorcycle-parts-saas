@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import Receipt from '@/components/pos/Receipt'
-import { receiptText, waNumber } from '@/lib/pos'
+import { receiptText, thermalReceiptText, waNumber } from '@/lib/pos'
 
 export default function SalePage() {
   const { id } = useParams<{ id: string }>()
@@ -28,11 +28,13 @@ export default function SalePage() {
   const [panel, setPanel] = useState<'' | 'void' | 'return'>('')
   const [reason, setReason] = useState('')
   const [method, setMethod] = useState('cash')
+  const [returnType, setReturnType] = useState('wrong_part')
   const [qtys, setQtys] = useState<Record<string, string>>({})
   const [restock, setRestock] = useState<Record<string, boolean>>({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
+  const [copied, setCopied] = useState('')
 
   const load = useCallback(async () => {
     const s = await supabase.from('sales').select('*').eq('id', id).maybeSingle()
@@ -44,7 +46,7 @@ export default function SalePage() {
     const [it, pay, ret, ten, br, cu, pr] = await Promise.all([
       supabase.from('sale_items').select('*').eq('sale_id', id),
       supabase.from('payments').select('*').eq('sale_id', id).order('paid_at'),
-      supabase.from('sale_returns').select('id,return_no,total_refund,refund_method,reason,created_at').eq('sale_id', id),
+      supabase.from('sale_returns').select('id,return_no,total_refund,refund_method,reason,return_type,created_at').eq('sale_id', id),
       supabase.from('tenants').select('name,address,town,phone,kra_pin,receipt_footer').maybeSingle(),
       supabase.from('branches').select('name,phone').eq('id', sl.branch_id).maybeSingle(),
       sl.customer_id ? supabase.from('customers').select('name,phone').eq('id', sl.customer_id).maybeSingle() : Promise.resolve({ data: null }),
@@ -71,6 +73,16 @@ export default function SalePage() {
 
   const text = receiptText({ shop: tenant?.name ?? '', sale, items, payments, customer: customer?.name })
   const wa = `https://wa.me/${waNumber(customer?.phone)}?text=${encodeURIComponent(text)}`
+  async function copyThermal(width: 58 | 80) {
+    const t58 = thermalReceiptText({ shop: tenant?.name ?? '', sale, items, payments, customer: customer?.name, width })
+    try {
+      await navigator.clipboard.writeText(t58)
+      setCopied(`Copied ${width}mm receipt text — paste it into your Bluetooth printer app`)
+    } catch {
+      setCopied('Could not copy automatically — long-press and copy the text instead')
+    }
+    setTimeout(() => setCopied(''), 4000)
+  }
   const returnable = items.filter((i) => Number(i.quantity) - Number(i.returned_qty) > 0)
 
   async function markReviewed() {
@@ -109,6 +121,7 @@ export default function SalePage() {
       p_items: chosen,
       p_refund_method: method,
       p_reason: reason,
+      p_return_type: returnType,
     })
     setBusy(false)
     if (error) return setError(error.message)
@@ -151,7 +164,16 @@ export default function SalePage() {
         <Button variant="ghost" onClick={() => navigator.clipboard.writeText(text)}>
           Copy text
         </Button>
+        <Button variant="ghost" onClick={() => copyThermal(58)}>
+          Copy 58mm
+        </Button>
+        <Button variant="ghost" onClick={() => copyThermal(80)}>
+          Copy 80mm
+        </Button>
       </div>
+      {copied && (
+        <p className="mx-auto max-w-md text-center text-xs text-muted print:hidden">{copied}</p>
+      )}
 
       {canManage && sale.offline_flags?.length > 0 && (
         <Card className="mx-auto max-w-xl space-y-2 border-red-400/50 print:hidden">
@@ -220,6 +242,13 @@ export default function SalePage() {
                   </div>
                 </div>
               ))}
+              <Select label="Return type" value={returnType} onChange={(e) => setReturnType(e.target.value)}>
+                <option value="wrong_part">Wrong part (fits nothing)</option>
+                <option value="defective">Defective / faulty part</option>
+                <option value="warranty">Warranty claim</option>
+                <option value="exchange">Exchange for another part</option>
+                <option value="customer_change">Customer changed their mind</option>
+              </Select>
               <Select label="Refund by" value={method} onChange={(e) => setMethod(e.target.value)}>
                 <option value="cash">Cash</option>
                 <option value="mpesa">M-Pesa</option>
