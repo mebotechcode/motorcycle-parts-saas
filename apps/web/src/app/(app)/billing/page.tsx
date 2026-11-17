@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
-import { getLang, t as tr } from '@/lib/i18n'
+import { t as tr, useLang } from '@/lib/i18n'
 import { normalizeMpesaPhone, sendStkPush } from '@/lib/mpesa'
 
 type Plan = {
@@ -38,7 +38,7 @@ export default function BillingPage() {
   const { claims } = useSession()
   const role = claims.tenant_role
   const manager = role === 'owner' || role === 'manager'
-  const lang = getLang()
+  const lang = useLang()
 
   const [info, setInfo] = useState<BillingInfo | null>(null)
   const [plans, setPlans] = useState<Plan[]>([])
