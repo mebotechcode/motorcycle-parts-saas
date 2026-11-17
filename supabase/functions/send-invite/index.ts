@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: { 'api-key': key, 'content-type': 'application/json', accept: 'application/json' },
       body: JSON.stringify({
-        sender: { name: Deno.env.get('MAIL_FROM_NAME') ?? "Naf's Motor Spares", email: fromEmail },
+        sender: { name: Deno.env.get('MAIL_FROM_NAME') ?? "NafPOS", email: fromEmail },
         to: [{ email }],
         subject: `${inviter} invited you to join ${business}`,
         htmlContent: emailHtml({ business, inviter, role: ROLE[role] ?? role, link }),

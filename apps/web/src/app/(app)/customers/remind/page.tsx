@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Select, Spinner } from '@/components/ui'
 import { money, waNumber } from '@/lib/pos'
-import { BUCKETS, DEFAULT_REMINDER, bucketOf, daysSince, fillTemplate, type COverview } from '@/lib/customers'
+import { BUCKETS, DEFAULT_REMINDER, bucketOf, daysSince, fillTemplate, itemizedReminder, type COverview, type UnpaidSale } from '@/lib/customers'
 
 export default function RemindPage() {
   const { claims } = useSession()
@@ -30,6 +30,28 @@ export default function RemindPage() {
     setRows((d.data as COverview[]) ?? [])
     setAllowed((a.data as any) ?? null)
   }, [])
+
+  // Unpaid invoices per debtor, for the itemized WhatsApp reminder
+  const [unpaid, setUnpaid] = useState<Record<string, UnpaidSale[]>>({})
+  useEffect(() => {
+    const ids = (rows ?? []).map((r) => r.id)
+    if (ids.length === 0) return setUnpaid({})
+    supabase
+      .from('sales')
+      .select('id,receipt_no,sold_at,total,balance_due,customer_id')
+      .in('customer_id', ids)
+      .gt('balance_due', 0)
+      .in('status', ['completed', 'partially_returned'])
+      .order('sold_at', { ascending: true })
+      .limit(1500)
+      .then(({ data }) => {
+        const m: Record<string, UnpaidSale[]> = {}
+        ;(data as any[])?.forEach((s) => {
+          ;(m[s.customer_id] ??= []).push(s)
+        })
+        setUnpaid(m)
+      })
+  }, [rows])
 
   useEffect(() => {
     if (manager) load()
@@ -149,7 +171,9 @@ export default function RemindPage() {
           <div className="space-y-2">
             {shown.map((r) => {
               const d = daysSince(r.oldest_unpaid_at)
-              const text = fillTemplate(message, { name: r.name, amount: Number(r.balance), shop })
+              const invoices = unpaid[r.id] ?? []
+              // Itemized reminder lists each unpaid invoice; falls back to the simple template
+              const text = invoices.length > 0 ? itemizedReminder(shop, r.name, Number(r.balance), invoices) : fillTemplate(message, { name: r.name, amount: Number(r.balance), shop })
               return (
                 <div key={r.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-charcoal-3 bg-charcoal p-3">
                   <input type="checkbox" checked={picked.has(r.id)} onChange={() => toggle(r.id)} className="h-5 w-5 accent-[#FF5B14]" aria-label={`Select ${r.name}`} />

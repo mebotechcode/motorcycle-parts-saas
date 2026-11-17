@@ -129,7 +129,8 @@ export default function ImportPage() {
         </ol>
         <p className="text-xs text-muted">
           Tip: keep a unique <b>code (sku)</b> for each part. Importing again with the same codes can then update prices without making duplicates.
-          In the <b>fits</b> column write bikes as &quot;Bajaj Boxer BM100; TVS HLX 125&quot;.
+          In the <b>fits</b> column write bikes as &quot;Bajaj Boxer BM100; TVS HLX 125&quot;. You can also import
+          <b>aisle</b>, <b>rack</b>, <b>bin</b>, <b>aliases</b> (slang, separated by &quot;;&quot; — used by the POS search) and the KRA <b>hs_code</b>.
         </p>
         <Button variant="ghost" onClick={downloadTemplate}>
           Download template

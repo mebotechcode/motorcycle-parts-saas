@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { ROLE_LABEL, useSession } from '@/lib/session'
 import { Spinner } from '@/components/ui'
 import OfflineStatus from '@/components/OfflineStatus'
+import { getLang, setLang, t, type Lang } from '@/lib/i18n'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -14,6 +15,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { loading, session, claims, signOut } = useSession()
   const [businessName, setBusinessName] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [lang, setLangState] = useState<Lang>('en')
+
+  useEffect(() => {
+    setLangState(getLang())
+  }, [])
+
+  const toggleLang = () => {
+    const next: Lang = lang === 'en' ? 'sw' : 'en'
+    setLang(next)
+    setLangState(next)
+    // Persist to profile so it follows the user across devices
+    supabase.from('profiles').update({ language: next }).then(() => {})
+  }
 
   // Guard: must be signed in AND belong to a business
   useEffect(() => {
@@ -33,6 +47,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // close the mobile menu when the page changes, or Escape is pressed
   useEffect(() => setMenuOpen(false), [pathname])
+  // auto-transmit any queued eTIMS invoices — at most once per 5 minutes per device
+  useEffect(() => {
+    if (!claims.tenant_id) return
+    const KICK_KEY = 'etims_kick_v1'
+    const kick = () => {
+      try {
+        const last = Number(sessionStorage.getItem(KICK_KEY) ?? 0)
+        if (Date.now() - last < 5 * 60 * 1000) return
+        sessionStorage.setItem(KICK_KEY, String(Date.now()))
+      } catch {}
+      supabase.functions.invoke('etims-submit', { body: { transmit_all: true } }).catch(() => {})
+    }
+    kick()
+    window.addEventListener('online', kick)
+    return () => window.removeEventListener('online', kick)
+  }, [claims.tenant_id])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
     window.addEventListener('keydown', onKey)
@@ -50,19 +80,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const role = claims.tenant_role ?? ''
   const nav = [
-    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/dashboard', label: t('dashboard', lang) },
     ...(role === 'owner' || role === 'manager' || role === 'cashier'
       ? [
-          { href: '/sell', label: 'Sell' },
-          { href: '/sales', label: 'Sales' },
-          { href: '/customers', label: 'Customers' },
+          { href: '/sell', label: t('sell', lang) },
+          { href: '/sales', label: t('sales', lang) },
+          { href: '/customers', label: t('customers', lang) },
+          { href: '/till', label: t('till', lang) },
         ]
       : []),
-    { href: '/inventory', label: 'Inventory' },
-    ...(role === 'owner' || role === 'manager' || role === 'storekeeper' ? [{ href: '/purchases', label: 'Purchases' }] : []),
-    ...(role === 'owner' || role === 'manager' ? [{ href: '/reports', label: 'Reports' }] : []),
-    { href: '/branches', label: 'Branches' },
-    ...(role === 'owner' || role === 'manager' ? [{ href: '/staff', label: 'Staff' }] : []),
+    { href: '/inventory', label: t('inventory', lang) },
+    ...(role === 'owner' || role === 'manager' || role === 'storekeeper' ? [{ href: '/purchases', label: t('purchases', lang) }] : []),
+    ...(role === 'owner' || role === 'manager'
+      ? [
+          { href: '/reports', label: t('reports', lang) },
+          { href: '/billing', label: t('billing', lang) },
+        ]
+      : []),
+    { href: '/branches', label: t('branches', lang) },
+    ...(role === 'owner' || role === 'manager' ? [{ href: '/staff', label: t('staff', lang) }] : []),
   ]
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
   const doSignOut = () => signOut().then(() => router.replace('/login'))
@@ -89,10 +125,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <img src="/naf-icon.png" alt="" className="h-9 w-9 rounded-full" />
           <div className="min-w-0 flex-1">
             <div className="truncate font-display text-xl font-bold uppercase leading-none tracking-wide">
-              {businessName || "Naf's Motor Spares"}
+              {businessName || 'NafPOS'}
             </div>
             <div className="text-xs text-muted">{ROLE_LABEL[role] ?? role}</div>
           </div>
+          <button
+            type="button"
+            onClick={toggleLang}
+            aria-label="Toggle language / Badili lugha"
+            className="rounded-lg border border-charcoal-3 px-2.5 py-1.5 text-xs font-semibold text-muted hover:bg-charcoal-3 hover:text-offwhite"
+          >
+            {lang === 'en' ? 'EN | SW' : 'SW | EN'}
+          </button>
 
           {/* desktop links */}
           <nav className="hidden items-center gap-1 lg:flex">
@@ -112,7 +156,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             onClick={doSignOut}
             className="hidden rounded-lg border border-charcoal-3 px-3 py-1.5 text-sm text-muted hover:bg-charcoal-3 hover:text-offwhite lg:block"
           >
-            Sign out
+            {t('signOut', lang)}
           </button>
         </div>
       </header>
@@ -137,7 +181,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <img src="/naf-icon.png" alt="" className="h-10 w-10 rounded-full" />
           <div className="min-w-0 flex-1">
             <div className="truncate font-display text-lg font-bold uppercase leading-none">
-              {businessName || "Naf's Motor Spares"}
+              {businessName || 'NafPOS'}
             </div>
             <div className="text-xs text-muted">{ROLE_LABEL[role] ?? role}</div>
           </div>
@@ -167,10 +211,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="border-t border-charcoal-3 p-3">
           <button
+            onClick={toggleLang}
+            className="mb-2 w-full rounded-xl border border-charcoal-3 px-4 py-3 text-left text-lg text-muted hover:bg-charcoal-3 hover:text-offwhite"
+          >
+            {lang === 'en' ? 'Kiswahili' : 'English'}
+          </button>
+          <button
             onClick={doSignOut}
             className="w-full rounded-xl border border-charcoal-3 px-4 py-3 text-left text-lg text-muted hover:bg-charcoal-3 hover:text-offwhite"
           >
-            Sign out
+            {t('signOut', lang)}
           </button>
         </div>
       </aside>

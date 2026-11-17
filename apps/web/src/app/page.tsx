@@ -5,15 +5,15 @@ import SiteHeader from '@/components/landing/SiteHeader'
 import DashboardMock from '@/components/landing/DashboardMock'
 
 export const metadata: Metadata = {
-  title: "Naf's Motor Spares | Shop management for motorcycle spare parts in Kenya",
+  title: 'NafPOS — Motor Spares POS for Kenya | Sell Fast, Even Offline',
   description:
-    'Stock, sales, credit, M-Pesa and staff in one simple system, built for boda boda spare parts shops in Kenya. Free 14-day trial.',
+    'Stock, sales, credit (deni), M-Pesa and staff in one simple system, built for boda boda spare parts shops in Kenya. Slang search, eTIMS receipts, EN/Kiswahili. Free 14-day trial.',
+  alternates: { canonical: '/' },
 }
 
 // ---------------------------------------------------------------------
-// EDIT THESE: contact email and prices shown on the website
-// ---------------------------------------------------------------------
-const CONTACT_EMAIL = 'hello@example.com' // <- put your real email here
+// Support email shown on the public site; set NEXT_PUBLIC_SUPPORT_EMAIL in production.
+const CONTACT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? 'hello@example.com'
 const PLANS = [
   {
     name: 'Starter',
@@ -42,12 +42,15 @@ const FEATURES = [
   { icon: 'store', title: 'Many branches, one owner', text: 'Add branches and staff. Owner, manager, cashier and storekeeper each see only what they should.', live: true },
   { icon: 'shield', title: 'Private and secure', text: "Every shop's data is fully separated. Staff invitations are sent straight to their email.", live: true },
   { icon: 'box', title: 'Parts by bike model', text: 'Record which parts fit Boxer, TVS, Honda, Yamaha and more. Genuine, OEM and aftermarket versions side by side.', live: true },
-  { icon: 'cart', title: 'Fast point of sale', text: 'Search, add, take payment, print or share the receipt. Retail and wholesale prices with a price floor you control.', live: false },
-  { icon: 'book', title: 'Credit and debtors', text: 'Know who owes you, how much and since when. Set credit limits and send SMS reminders.', live: false },
-  { icon: 'phone', title: 'M-Pesa payments', text: 'Send a payment request to the customer’s phone and see it matched to the sale automatically.', live: false },
-  { icon: 'offline', title: 'Keeps working offline', text: 'No internet? Keep selling. Everything syncs when you are back online.', live: false },
-  { icon: 'chart', title: 'Profit and reports', text: 'Best sellers, slow stock, low-stock alerts, daily cash-up and profit per item.', live: false },
-  { icon: 'receipt', title: 'KRA eTIMS ready', text: 'Built with VAT and electronic tax invoices in mind, so compliance is not a scramble.', live: false },
+  { icon: 'cart', title: 'Fast point of sale', text: 'Search by slang (kenda, coil, piston ring), add, take payment, print or share the receipt. Retail and wholesale prices with a price floor you control.', live: true },
+  { icon: 'book', title: 'Credit and debtors (deni)', text: 'Know who owes you, how much and since when. Credit limits, 7/14/30-day terms, debt aging and 1-tap WhatsApp reminders with itemized invoices.', live: true },
+  { icon: 'phone', title: 'M-Pesa payments', text: 'Send an STK Push to the customer’s phone and see it matched to the sale automatically. Manual codes are checked for duplicates and verified at close.', live: true },
+  { icon: 'offline', title: 'Keeps working offline', text: 'No internet? Keep selling. Everything syncs when you are back online — stock, credit and M-Pesa codes stay safe.', live: true },
+  { icon: 'chart', title: 'Profit and reports', text: 'Best sellers, slow stock, low-stock alerts, blind cash-up and profit per item.', live: true },
+  { icon: 'receipt', title: 'KRA eTIMS ready', text: 'VAT, HS codes and an offline eTIMS queue with CU numbers and QR codes on every receipt.', live: true },
+  { icon: 'box', title: 'Bin & rack locations', text: 'Aisle, rack and box on every part so new storekeepers find small parts in seconds.', live: true },
+  { icon: 'store', title: 'Fundi commissions', text: 'Track which mechanic brought the rider and what you owe them — settle payouts transparently.', live: true },
+  { icon: 'phone', title: 'English & Swahili', text: 'Switch the whole till between English and Kiswahili. Receipts follow your language too.', live: true },
 ]
 
 const PAIN = [
@@ -60,7 +63,7 @@ const PAIN = [
 const FAQ = [
   ['Do I need to install anything?', 'No. It runs in your web browser on a phone, tablet or computer. You just sign in.'],
   ['Can my staff use their own phones?', 'Yes. The system works on phones, tablets and computers. Each person signs in with their own account and sees only what their role allows.'],
-  ['What if the internet goes down?', 'Offline selling is part of the plan: you will be able to keep selling and everything syncs when you are back online.'],
+  ['What if the internet goes down?', 'Keep selling. The app works offline and everything syncs when you are back online — stock, credit balances and M-Pesa codes stay safe.'],
   ['Is my shop’s information safe?', 'Each shop’s data is kept separate and protected by strict access rules. Cashiers cannot see other staff’s sales, and every sensitive change is recorded.'],
   ['How much does it cost?', 'Every new shop gets a 14-day free trial with no card needed. After that, plans start at KES 1,000 per month.'],
   ['Can I have more than one branch?', 'Yes. Starter has one branch; Growth and Chain support several, each with its own stock and staff access.'],
@@ -68,8 +71,34 @@ const FAQ = [
 
 export default function Landing() {
   const year = new Date().getFullYear()
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: 'NafPOS',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web, Android',
+      description:
+        'Offline-first point of sale, inventory, credit ledger (deni) and M-Pesa integration for Kenyan motorcycle spare parts shops.',
+      offers: { '@type': 'AggregateOffer', lowPrice: '1000', highPrice: '6000', priceCurrency: 'KES', offerCount: 3 },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: FAQ.map(([question, answer]) => ({ '@type': 'Question', name: question, acceptedAnswer: { '@type': 'Answer', text: answer } })),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'NafPOS',
+      url: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+      logo: '/nafpos-logo.png',
+      areaServed: 'KE',
+    },
+  ]
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <SiteHeader />
 
       {/* ---------------- Hero ---------------- */}
@@ -83,11 +112,11 @@ export default function Landing() {
               Made for Kenyan spare parts shops
             </span>
             <h1 className="mt-4 text-5xl font-bold leading-[0.95] sm:text-6xl lg:text-7xl">
-              Run your motorcycle <span className="text-brand">spare parts</span> shop with confidence
+              <span className="text-brand">NafPOS</span> — run your motorcycle spare parts shop with confidence
             </h1>
             <p className="mt-5 max-w-xl text-lg text-muted">
-              Stock, sales, credit and staff in one simple system, built for boda boda parts shops. Works on your phone,
-              with M-Pesa in mind.
+              Stock, sales, credit (deni), M-Pesa and staff in one simple system, built for boda boda parts shops in
+              Kenya. Works on your phone, offline when the internet goes down.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/signup" className="rounded-lg bg-brand px-6 py-3 text-base font-semibold text-charcoal hover:bg-brand-hover">
@@ -277,7 +306,7 @@ export default function Landing() {
           <div className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/naf-icon.png" alt="" className="h-8 w-8 rounded-full" />
-            <span>© {year} Naf&apos;s Motor Spares</span>
+            <span>© {year} NafPOS</span>
           </div>
           <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
             <a href="#features" className="hover:text-offwhite">Features</a>

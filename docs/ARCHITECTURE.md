@@ -84,3 +84,19 @@ supabase start
 supabase db reset        # runs migrations + seed locally
 supabase db push         # when ready to deploy to your cloud project
 ```
+
+## 8. Phase 8 additions (Kenyan superpowers — see PHASE8_SETUP.md)
+- **Tenancy columns:** tenants `etims_device_serial`, `etims_vscu_serial`, `etims_branch_code`, `etims_oscu_id`, `mpesa_till_number`, `mpesa_paybill_number`.
+- **Products:** `aliases text[]` (GIN index, slang search), `aisle`/`rack`/`bin` (POS pick faces), `hs_code`, `etims_code`. `save_product` extended accordingly.
+- **Customers:** `payment_terms_days` (0/7/14/30), `boda_stage`.
+- **Sales:** `referred_by_customer_id` + `mechanic_commission_amount`/`_paid`; eTIMS CU fields (`etims_cu_number`, `etims_internal_data`, `etims_receipt_signature`, `etims_qr_payload`, retry metadata).
+- **Payments:** `is_verified`/`verified_at`/`verified_by` — manual M-Pesa codes are unverified until an owner/manager confirms at end of day; STK-matched payments are auto-verified by the callback. Duplicate codes still blocked by `payments_mpesa_reference_unique`.
+- **Cash sessions:** `counted_mpesa`, `mpesa_variance`, `counted_bank`, `bank_variance`; `close_cash_session_blind`/`session_totals_blind` hide expected figures until the blind count is entered.
+- **Transfers:** `stock_transfer_items.discrepancy_note` — a note is mandatory for any line received short (`receive_transfer` enforces it).
+- **Returns:** `sale_returns.return_type` (wrong_part/defective/warranty/exchange/customer_change) + `exchange_sale_id`.
+- **New tables:** `mechanic_commissions` (unique per sale, owed/paid), `etims_queue` (unique per sale, queued/sending/submitted/failed, chronological retry with backoff).
+- **Views:** `unverified_mpesa_payments`, `debt_aging`, `mechanic_commission_summary`, `etims_pending_queue`, refreshed `product_overview`/`customer_overview`.
+- **RPCs:** `set_sale_referral`, `settle_mechanic_commissions`, `verify_mpesa_payment`, `queue_etims_invoice`, `etims_queue_summary`, `close_cash_session_blind`, `session_totals_blind`, `billing_status`, `debt_aging_summary`, `create_subscription_invoice`. `return_items`/`receive_goods`/`receive_transfer` extended (weighted-average costing on GRN).
+- **Edge Functions:** `mpesa-stk-push` (POS + subscription, server-side amount from the invoice), `mpesa-callback` (idempotent STK + C2B auto-match, activates subscriptions from paid invoices only), `etims-submit` (readiness-mode stub until `ETIMS_BASE_URL` is set; otherwise KRA `/submitInvoice`).
+- **Client:** `lib/i18n.ts` (EN/SW, localStorage + profile), `lib/mpesa.ts`, `lib/etims.ts`, `lib/search.ts` (offline slang/alias/bin search with Kenyan mechanic terms); NafPOS rebrand across landing/app; `/billing` in-app M-Pesa subscription page.
+- **Rebrand:** single-shop name removed from public surfaces; the product is sold as **NafPOS** with Starter KES 1,000 / Growth KES 2,500 / Chain KES 6,000 and a 14-day trial.

@@ -50,7 +50,7 @@ export default function SiteHeader() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/naf-icon.png" alt="" className="h-9 w-9 rounded-full" />
           <span className="font-display text-xl font-bold uppercase leading-none tracking-wide">
-            Naf&apos;s <span className="text-brand">Motor Spares</span>
+            Naf<span className="text-brand">POS</span>
           </span>
         </Link>
 
@@ -94,7 +94,7 @@ export default function SiteHeader() {
       >
         <div className="flex items-center justify-between border-b border-charcoal-3 p-4">
           <span className="font-display text-lg font-bold uppercase">
-            Naf&apos;s <span className="text-brand">Motor Spares</span>
+            Naf<span className="text-brand">POS</span>
           </span>
           <button type="button" onClick={() => setOpen(false)} aria-label="Close menu" className="rounded-lg p-2 text-muted hover:bg-charcoal-3">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

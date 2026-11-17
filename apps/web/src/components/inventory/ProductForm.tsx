@@ -39,6 +39,12 @@ export default function ProductForm({ product, costs, barcodes = [], modelIds = 
     tax_category: product?.tax_category ?? 'standard',
     reorder_level: product?.reorder_level?.toString() ?? '0',
     shelf_location: product?.shelf_location ?? '',
+    aisle: product?.aisle ?? '',
+    rack: product?.rack ?? '',
+    bin: product?.bin ?? '',
+    hs_code: product?.hs_code ?? '',
+    etims_code: product?.etims_code ?? '',
+    aliases: (product?.aliases ?? []).join(', '),
     description: product?.description ?? '',
     track_stock: product?.track_stock ?? true,
     is_active: product?.is_active ?? true,
@@ -128,6 +134,12 @@ export default function ProductForm({ product, costs, barcodes = [], modelIds = 
       tax_category: f.tax_category,
       reorder_level: num(f.reorder_level) ?? 0,
       shelf_location: f.shelf_location,
+      aisle: f.aisle,
+      rack: f.rack,
+      bin: f.bin,
+      hs_code: f.hs_code,
+      etims_code: f.etims_code,
+      aliases: f.aliases.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
       barcodes: codes,
       bike_model_ids: models,
     }
@@ -258,8 +270,18 @@ export default function ProductForm({ product, costs, barcodes = [], modelIds = 
       <Card className="space-y-4">
         <h2 className="text-xl font-bold">Stock settings</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Warn me when stock falls to" type="number" inputMode="decimal" min={0} step="any" value={f.reorder_level} onChange={set('reorder_level')} hint="0 = no warning" />
-          <Field label="Shelf / bin location" placeholder="e.g. Rack B3" value={f.shelf_location} onChange={set('shelf_location')} />
+        <Field label="Warn me when stock falls to" type="number" inputMode="decimal" min={0} step="any" value={f.reorder_level} onChange={set('reorder_level')} hint="0 = no warning" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Field label="Aisle" placeholder="e.g. A" value={f.aisle} onChange={set('aisle')} />
+          <Field label="Rack" placeholder="e.g. B" value={f.rack} onChange={set('rack')} />
+          <Field label="Bin / Box" placeholder="e.g. Box 14" value={f.bin} onChange={set('bin')} />
+        </div>
+        <Field label="Shelf / bin location (free text)" placeholder="e.g. Rack B - Box 14" value={f.shelf_location} onChange={set('shelf_location')} hint="Shown on POS search when aisle/rack/bin are empty" />
+        <Field label="Also known as (slang / local names)" placeholder="kenda, coil, piston ring" value={f.aliases} onChange={set('aliases')} hint="Comma separated. Helps anyone find this part by what mechanics call it." />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="HS code (eTIMS)" placeholder="e.g. 8714.10.00" value={f.hs_code} onChange={set('hs_code')} hint="KRA harmonised system code for this part" />
+          <Field label="eTIMS item code (optional)" placeholder="Optional" value={f.etims_code} onChange={set('etims_code')} hint="Only if KRA issued you a specific item code" />
         </div>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={f.track_stock} onChange={set('track_stock')} className="h-4 w-4 accent-[#FF5B14]" />

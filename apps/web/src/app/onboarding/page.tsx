@@ -81,7 +81,7 @@ export default function OnboardingPage() {
           <Field
             label="Business name"
             required
-            placeholder="e.g. Naf's Motor Spares"
+            placeholder="e.g. Kamau's Spare Parts"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />

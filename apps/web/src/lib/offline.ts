@@ -80,12 +80,22 @@ export type CProduct = {
   deleted_at: string | null
   updated_at: string
   barcodes: string[]
+  aliases?: string[]
+  aisle?: string | null
+  rack?: string | null
+  bin?: string | null
+  shelf_location?: string | null
+  hs_code?: string | null
+  etims_code?: string | null
+  bike_model_ids?: string[]
 }
 export type CCustomer = {
   id: string
   name: string
   phone: string | null
   credit_limit: number
+  payment_terms_days?: number
+  boda_stage?: string | null
   price_tier: 'retail' | 'wholesale'
   customer_type: string
   is_active: boolean
@@ -131,7 +141,7 @@ export async function syncCatalog(branchId: string, full = false) {
   const products = await pullAll((a, b) => {
     let q = supabase
       .from('product_overview')
-      .select('id,name,sku,unit,part_number,brand_name,selling_price,wholesale_price,tax_category,track_stock,is_active,deleted_at,updated_at,barcodes')
+      .select('id,name,sku,unit,part_number,brand_name,selling_price,wholesale_price,tax_category,track_stock,is_active,deleted_at,updated_at,barcodes,aliases,aisle,rack,bin,shelf_location,hs_code,etims_code,bike_model_ids')
       .order('updated_at', { ascending: true })
       .order('id')
       .range(a, b)
@@ -159,7 +169,7 @@ export async function syncCatalog(branchId: string, full = false) {
   const customers = await pullAll((a, b) => {
     let q = supabase
       .from('customers')
-      .select('id,name,phone,credit_limit,price_tier,customer_type,is_active,deleted_at,updated_at')
+      .select('id,name,phone,credit_limit,payment_terms_days,boda_stage,price_tier,customer_type,is_active,deleted_at,updated_at')
       .order('updated_at', { ascending: true })
       .order('id')
       .range(a, b)
@@ -177,7 +187,7 @@ export async function syncCatalog(branchId: string, full = false) {
 
   // shop and branches (for offline receipts)
   const [ten, br] = await Promise.all([
-    supabase.from('tenants').select('name,address,town,phone,kra_pin,receipt_footer,vat_registered,vat_rate').maybeSingle(),
+    supabase.from('tenants').select('name,address,town,phone,kra_pin,receipt_footer,vat_registered,vat_rate,etims_device_serial,etims_vscu_serial,etims_branch_code,mpesa_till_number,mpesa_paybill_number').maybeSingle(),
     supabase.from('branches').select('id,name,code,phone').eq('is_active', true).order('name'),
   ])
   if (ten.data) await setMeta('tenant', ten.data)
@@ -226,9 +236,10 @@ export async function syncQueue(): Promise<{ sent: number; failed: number; stopp
   if (sending) return result
   sending = true
   try {
+    const tenant = await getMeta<any>('tenant').catch(() => null)
     const items = (await queueAll()).filter((x) => x.status === 'pending').sort((a, b) => a.created_at.localeCompare(b.created_at))
     for (const it of items) {
-      const { error } = await supabase.rpc('complete_sale', { p_data: { ...it.payload, offline: true } })
+      const { data, error } = await supabase.rpc('complete_sale', { p_data: { ...it.payload, offline: true } })
       if (error) {
         // no connection, or the login needs refreshing: stop and try again later
         if (isNetworkError(error.message) || /jwt|token|expired|not authenticated/i.test(error.message)) {
@@ -238,6 +249,19 @@ export async function syncQueue(): Promise<{ sent: number; failed: number; stopp
         await idbPut('queue', { ...it, status: 'failed', error: error.message, attempts: it.attempts + 1 })
         result.failed++
       } else {
+        const saleId = (data as any)?.sale_id
+        // Post-sync bookkeeping (never blocks the sale): fundi commission + eTIMS queue
+        if (saleId) {
+          if (it.payload?.mechanic_id) {
+            await supabase
+              .rpc('set_sale_referral', { p_sale_id: saleId, p_mechanic_id: it.payload.mechanic_id, p_commission: Number(it.payload.mechanic_commission ?? 0) })
+              .then(() => {}, () => {})
+          }
+          if (tenant?.kra_pin) {
+            await supabase.rpc('queue_etims_invoice', { p_sale_id: saleId }).then(() => {}, () => {})
+            supabase.functions.invoke('etims-submit', { body: { transmit_all: true } }).then(() => {}, () => {})
+          }
+        }
         await idbDelete('queue', it.key)
         result.sent++
       }

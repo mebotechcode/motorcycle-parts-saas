@@ -101,7 +101,7 @@ export function AuthShell({
       <div className="w-full max-w-md">
         <Link href="/" aria-label="Back to home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/naf-logo.png" alt="Naf's Motor Spares" className="mx-auto mb-2 h-40 w-auto sm:h-44" />
+          <img src="/nafpos-logo.png" alt="NafPOS" className="mx-auto mb-2 h-40 w-auto sm:h-44" />
         </Link>
         <div className="rounded-2xl border border-charcoal-3 bg-charcoal-2 p-6">
           <h1 className="text-3xl font-bold">{title}</h1>

@@ -18,6 +18,8 @@ export type Customer = {
   name: string
   phone: string | null
   credit_limit: number
+  payment_terms_days?: number
+  boda_stage?: string | null
   price_tier: Tier
   customer_type: string
 }
@@ -51,23 +53,50 @@ export function waNumber(phone?: string | null) {
   return d
 }
 
-export function receiptText(o: { shop: string; sale: any; items: any[]; payments: any[]; customer?: string | null }) {
-  const { shop, sale, items, payments, customer } = o
+export function receiptText(o: { shop: string; sale: any; items: any[]; payments: any[]; customer?: string | null; lang?: 'en' | 'sw' }) {
+  const { shop, sale, items, payments, customer, lang = 'en' } = o
+  const sw = lang === 'sw'
   const lines = [
     `*${shop}*`,
-    `Receipt ${sale.receipt_no}`,
+    `${sw ? 'Risiti' : 'Receipt'} ${sale.receipt_no}`,
     new Date(sale.sold_at).toLocaleString('en-KE'),
-    customer ? `Customer: ${customer}` : '',
+    customer ? `${sw ? 'Mteja' : 'Customer'}: ${customer}` : '',
+    sale.etims_cu_number ? `CU: ${sale.etims_cu_number}` : sale.etims_status === 'pending' ? 'eTIMS: queued' : '',
     '',
     ...items.map((i) => `${i.product_name} x${Number(i.quantity)}  ${money(i.line_total)}`),
     '',
-    `*Total: KES ${money(sale.total)}*`,
+    `*${sw ? 'Jumla' : 'Total'}: KES ${money(sale.total)}*`,
     ...payments.map((p) => `${PAY_LABEL[p.method] ?? p.method}: KES ${money(p.amount)}`),
-    Number(sale.balance_due) > 0 ? `Balance on account: KES ${money(sale.balance_due)}` : '',
+    Number(sale.balance_due) > 0 ? `${sw ? 'Salio kwenye akaunti' : 'Balance on account'}: KES ${money(sale.balance_due)}` : '',
     '',
-    'Thank you for shopping with us!',
+    sw ? 'Asante kwa kununua nasi!' : 'Thank you for shopping with us!',
   ]
   return lines.filter((x, i) => x !== '' || lines[i - 1] !== '').join('\n')
+}
+
+// 58mm / 80mm thermal receipt text (monospace, ~32 / ~42 chars per line)
+export function thermalReceiptText(o: { shop: string; sale: any; items: any[]; payments: any[]; customer?: string | null; width?: 58 | 80 }) {
+  const { shop, sale, items, payments, customer, width = 58 } = o
+  const cols = width === 80 ? 42 : 32
+  const line = (l: string, r: string) => {
+    const pad = Math.max(1, cols - l.length - r.length)
+    return l + ' '.repeat(pad) + r
+  }
+  const out = [
+    shop.toUpperCase().slice(0, cols),
+    `Receipt ${sale.receipt_no}`,
+    new Date(sale.sold_at).toLocaleString('en-KE'),
+    customer ? `Customer: ${customer}`.slice(0, cols) : '',
+    '-'.repeat(cols),
+    ...items.map((i) => line(`${i.product_name} x${Number(i.quantity)}`.slice(0, cols - 8), money(i.line_total))),
+    '-'.repeat(cols),
+    line('TOTAL (KES)', money(sale.total)),
+    ...payments.map((p) => line((PAY_LABEL[p.method] ?? p.method).slice(0, cols - 8), money(p.amount))),
+    Number(sale.balance_due) > 0 ? line('Balance due', money(sale.balance_due)) : '',
+    sale.etims_cu_number ? `CU: ${sale.etims_cu_number}`.slice(0, cols) : '',
+    'Thank you!',
+  ]
+  return out.filter(Boolean).join('\n')
 }
 
 // VAT inside a bill (prices already include VAT). Same maths as the server.

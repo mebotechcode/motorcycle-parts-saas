@@ -64,7 +64,7 @@ export default function StaffPage() {
 
   const inviteUrl = (token: string) => `${window.location.origin}/join?token=${token}`
   const whatsapp = (token: string) =>
-    `https://wa.me/?text=${encodeURIComponent(`You are invited to join our shop on Naf's Motor Spares. Open this link: ${inviteUrl(token)}`)}`
+    `https://wa.me/?text=${encodeURIComponent(`You are invited to join our shop on NafPOS. Open this link: ${inviteUrl(token)}`)}`
 
   async function readFnError(err: any): Promise<string> {
     try {
@@ -261,7 +261,7 @@ export default function StaffPage() {
                 </Button>
                 <a
                   className="inline-flex items-center rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-charcoal"
-                  href={`https://wa.me/?text=${encodeURIComponent(`You are invited to join our shop on Naf's Motor Spares. Open this link: ${link}`)}`}
+                  href={`https://wa.me/?text=${encodeURIComponent(`You are invited to join our shop on NafPOS. Open this link: ${link}`)}`}
                   target="_blank"
                   rel="noreferrer"
                 >

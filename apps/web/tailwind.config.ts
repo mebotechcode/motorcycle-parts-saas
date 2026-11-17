@@ -1,6 +1,6 @@
 import type { Config } from 'tailwindcss'
 
-// Colours sampled from the Naf's Motor Spares logo (see /brand/BRAND.md)
+// Colours sampled from the NafPOS logo (see /brand/BRAND.md)
 const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {

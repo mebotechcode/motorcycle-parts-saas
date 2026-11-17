@@ -5,12 +5,36 @@ export type COverview = {
   customer_type: string
   price_tier: string
   credit_limit: number
+  payment_terms_days?: number
+  boda_stage?: string | null
   notes: string | null
   is_active: boolean
   balance: number
   over_limit: boolean
   last_payment_at: string | null
   oldest_unpaid_at: string | null
+}
+
+export const PAYMENT_TERMS = [0, 7, 14, 30] as const
+export const termsLabel = (days?: number | null) => (!days || days === 0 ? 'Pay now' : `${days} days`)
+
+export type UnpaidSale = { id: string; receipt_no: string; sold_at: string; total: number; balance_due: number }
+
+// Itemized WhatsApp reminder: lists each unpaid invoice so the customer
+// can see exactly what they owe, not just a total.
+export function itemizedReminder(shop: string, name: string, amount: number, unpaid: UnpaidSale[]): string {
+  const first = name.split(' ')[0]
+  const lines = [
+    `Hello ${first}, this is *${shop}*.`,
+    `You owe us *KES ${Number(amount).toLocaleString('en-KE', { maximumFractionDigits: 0 })}*.`,
+    '',
+    'Unpaid invoices:',
+    ...unpaid.slice(0, 8).map((s) => `• ${s.receipt_no} (${new Date(s.sold_at).toLocaleDateString('en-KE')}) — KES ${Number(s.balance_due).toLocaleString('en-KE', { maximumFractionDigits: 0 })}`),
+    unpaid.length > 8 ? `• ...and ${unpaid.length - 8} more` : '',
+    '',
+    'Please pay via M-Pesa or visit us. Asante!',
+  ]
+  return lines.filter(Boolean).join('\n')
 }
 
 export const TYPE_LABEL: Record<string, string> = {
