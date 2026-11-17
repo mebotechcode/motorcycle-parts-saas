@@ -2,13 +2,15 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui'
+import CameraScanner from '@/components/CameraScanner'
 
 // Type or scan a barcode, press Enter. (USB scanners type the number and press Enter for you.)
 export default function BarcodeInput({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
   const [text, setText] = useState('')
+  const [scanning, setScanning] = useState(false)
 
-  function add() {
-    const v = text.trim()
+  function add(code?: string) {
+    const v = (code ?? text).trim()
     if (!v) return
     if (!value.includes(v)) onChange([...value, v])
     setText('')
@@ -42,10 +44,22 @@ export default function BarcodeInput({ value, onChange }: { value: string[]; onC
           placeholder="Scan or type a barcode, then press Enter"
           className="w-full rounded-lg border border-charcoal-3 bg-charcoal px-3 py-2.5 text-offwhite placeholder:text-muted/60 focus:border-brand focus:outline-none"
         />
-        <Button type="button" variant="ghost" onClick={add}>
+        <Button type="button" variant="ghost" onClick={() => add()}>
           Add
         </Button>
+        <Button type="button" variant="ghost" onClick={() => setScanning(true)} aria-label="Scan with camera">
+          📷 Scan
+        </Button>
       </div>
+      {scanning && (
+        <CameraScanner
+          onDetect={(code) => {
+            add(code)
+            setScanning(false)
+          }}
+          onClose={() => setScanning(false)}
+        />
+      )}
     </div>
   )
 }
