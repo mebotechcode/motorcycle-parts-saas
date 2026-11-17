@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
-import { getLang, t } from '@/lib/i18n'
+import { t, useLang } from '@/lib/i18n'
 
 type Sess = {
   id: string
@@ -24,7 +24,7 @@ export default function TillPage() {
   const role = claims.tenant_role
   const manager = role === 'owner' || role === 'manager'
   const uid = session?.user.id
-  const lang = getLang()
+  const lang = useLang()
 
   const [branches, setBranches] = useState<{ id: string; name: string }[]>([])
   const [branchId, setBranchId] = useState('')

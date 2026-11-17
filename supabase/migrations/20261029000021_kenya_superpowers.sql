@@ -240,8 +240,16 @@ grant all on public.unverified_mpesa_payments, public.debt_aging,
 
 -- ---------------------------------------------------------------------
 -- 12. Refresh product_overview + customer_overview with new fields
+-- CREATE OR REPLACE VIEW cannot change a column's position (Postgres
+-- reads it as a rename -> 42P16), and customers_summary() depends on
+-- customer_overview, so both views are dropped and re-created, then
+-- grants and customers_summary() are restored.
 -- ---------------------------------------------------------------------
-create or replace view public.product_overview with (security_invoker = true) as
+drop function if exists public.customers_summary();
+drop view if exists public.customer_overview;
+drop view if exists public.product_overview;
+
+create view public.product_overview with (security_invoker = true) as
 select p.id, p.tenant_id, p.sku, p.name, p.description,
        p.category_id, c.name as category_name,
        p.brand_id, b.name as brand_name,
@@ -262,7 +270,7 @@ select p.id, p.tenant_id, p.sku, p.name, p.description,
     select sum(sl.quantity) as qty from public.stock_levels sl where sl.product_id = p.id
   ) s on true;
 
-create or replace view public.customer_overview with (security_invoker = true) as
+create view public.customer_overview with (security_invoker = true) as
 select c.id, c.tenant_id, c.name, c.phone, c.customer_type, c.price_tier, c.credit_limit,
        c.payment_terms_days, c.boda_stage,
        c.notes, c.is_active, c.deleted_at, c.created_at, c.updated_at,
@@ -273,6 +281,26 @@ select c.id, c.tenant_id, c.name, c.phone, c.customer_type, c.price_tier, c.cred
          where s.customer_id = c.id and s.status in ('completed','partially_returned') and s.balance_due > 0) as oldest_unpaid_at
   from public.customers c
   left join public.customer_balances b on b.customer_id = c.id and b.tenant_id = c.tenant_id;
+
+-- DROP VIEW silently discards grants, so re-issue them
+grant select on public.product_overview to authenticated;
+grant all on public.product_overview to service_role;
+grant select on public.customer_overview to authenticated;
+grant all on public.customer_overview to service_role;
+
+-- and re-create customers_summary() exactly as migration 18 defined it
+create or replace function public.customers_summary()
+returns jsonb language sql stable set search_path = ''
+as $$
+  select jsonb_build_object(
+    'owing_count',      count(*) filter (where balance > 0),
+    'total_owed',       coalesce(sum(balance) filter (where balance > 0), 0),
+    'over_limit_count', count(*) filter (where over_limit))
+  from public.customer_overview
+  where deleted_at is null and is_active
+$$;
+revoke execute on function public.customers_summary() from public, anon;
+grant execute on function public.customers_summary() to authenticated;
 
 -- ---------------------------------------------------------------------
 -- 13. RPC: mechanic referral + commission

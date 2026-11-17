@@ -7,14 +7,15 @@ import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { qty as fmtQty } from '@/lib/inventory'
 import { PRESET_LABEL, downloadCSV, periodRange, type Preset } from '@/lib/reports'
-import { getLang, t as tr } from '@/lib/i18n'
+import { t as tr, useLang } from '@/lib/i18n'
+import { VBars, HBars } from '@/components/Charts'
 
 type Tab = 'overview' | 'products' | 'stock' | 'team'
 
 export default function ReportsPage() {
   const { claims } = useSession()
   const manager = claims.tenant_role === 'owner' || claims.tenant_role === 'manager'
-  const lang = getLang()
+  const lang = useLang()
   const TABS: { key: Tab; label: string }[] = [
     { key: 'overview', label: tr('tabOverview', lang) },
     { key: 'products', label: tr('tabProducts', lang) },
@@ -102,7 +103,6 @@ export default function ReportsPage() {
   if (!manager) return <Alert kind="info">Only the owner and managers can open reports.</Alert>
 
   const margin = profit && Number(profit.net_sales) > 0 ? (Number(profit.gross_profit) / Number(profit.net_sales)) * 100 : null
-  const maxBar = Math.max(1, ...daily.map((d) => Math.max(Number(d.net_sales), 0)))
   const stockTotals = stockRows.reduce((a, r) => ({ cost: a.cost + Number(r.cost_value), retail: a.retail + Number(r.retail_value), units: a.units + Number(r.units) }), { cost: 0, retail: 0, units: 0 })
 
   return (
@@ -223,15 +223,14 @@ export default function ReportsPage() {
                 {tr('downloadCsv', lang)}
               </Button>
             </div>
-            <div className="overflow-x-auto">
-              <div className="flex h-36 min-w-full items-end gap-1" style={{ minWidth: `${daily.length * 14}px` }}>
-                {daily.map((d) => (
-                  <div key={d.day} className="flex flex-1 flex-col items-center justify-end" title={`${d.day}: KES ${money(d.net_sales)}`}>
-                    <div className={`w-full rounded-t ${Number(d.gross_profit) - Number(d.expenses) >= 0 ? 'bg-brand/80' : 'bg-red-400/70'}`} style={{ height: `${Math.max(2, (Math.max(Number(d.net_sales), 0) / maxBar) * 100)}%` }} />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <VBars
+              points={daily.map((d) => ({
+                label: new Date(d.day).toLocaleDateString('en-KE', { day: 'numeric', month: 'short' }),
+                value: Number(d.net_sales),
+                color: Number(d.gross_profit) - Number(d.expenses) >= 0 ? undefined : '#F87171',
+              }))}
+              format={(v) => `KES ${money(v)}`}
+            />
             <div className="overflow-x-auto">
               <table className="w-full min-w-[34rem] text-left text-sm">
                 <thead className="text-xs text-muted">
@@ -284,6 +283,7 @@ export default function ReportsPage() {
                 </Button>
               </div>
             </div>
+            {top.length > 0 && <HBars items={top.slice(0, 10).map((r) => ({ label: r.name, value: Number(r.revenue) }))} format={(v) => `KES ${money(v)}`} />}
             {top.length === 0 ? (
               <p className="text-sm text-muted">No sales in this period.</p>
             ) : (
@@ -388,6 +388,9 @@ export default function ReportsPage() {
               {tr('downloadCsv', lang)}
             </Button>
           </div>
+          {stockRows.length > 0 && (
+            <HBars items={[...stockRows].sort((a, b) => Number(b.cost_value) - Number(a.cost_value)).map((r) => ({ label: r.category, value: Number(r.cost_value) }))} format={(v) => `KES ${money(v)}`} />
+          )}
           <div className="overflow-x-auto">
             <table className="w-full min-w-[30rem] text-left text-sm">
               <thead className="text-xs text-muted">
@@ -462,6 +465,7 @@ export default function ReportsPage() {
           {branches.length > 1 && (
             <Card className="space-y-3">
               <h2 className="text-xl font-bold">Branches compared</h2>
+              <HBars items={branchRows.map((r) => ({ label: r.name, value: Number(r.net_sales ?? 0) }))} format={(v) => `KES ${money(v)}`} />
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[34rem] text-left text-sm">
                   <thead className="text-xs text-muted">

@@ -32,7 +32,7 @@ export default function SiteHeader() {
     : { href: '/signup', label: 'Start free trial' }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-charcoal-3 bg-charcoal/90 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-charcoal-3 bg-charcoal">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
         <button
           type="button"
@@ -84,7 +84,7 @@ export default function SiteHeader() {
       {/* mobile menu */}
       <div
         onClick={() => setOpen(false)}
-        className={`fixed inset-0 z-40 bg-black/60 transition-opacity md:hidden ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+        className={`fixed inset-0 z-40 bg-black/80 transition-opacity md:hidden ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
       />
       <aside
         aria-hidden={!open}

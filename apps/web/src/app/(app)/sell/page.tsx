@@ -21,9 +21,10 @@ import {
   type Customer,
   type Tier,
 } from '@/lib/pos'
-import { getLang, t as tr } from '@/lib/i18n'
+import { t as tr, useLang } from '@/lib/i18n'
 import { binLabel, searchProducts } from '@/lib/search'
 import { sendStkPush } from '@/lib/mpesa'
+import CameraScanner from '@/components/CameraScanner'
 
 export default function SellPage() {
   const router = useRouter()
@@ -48,12 +49,13 @@ export default function SellPage() {
   const [bankRef, setBankRef] = useState('')
   const [saleKey, setSaleKey] = useState(() => uuid())
   const [search, setSearch] = useState('')
+  const [scanning, setScanning] = useState(false)
   const [mechanicId, setMechanicId] = useState('')
   const [commission, setCommission] = useState('')
   const [stkPhone, setStkPhone] = useState('')
   const [stkBusy, setStkBusy] = useState(false)
   const [stkInfo, setStkInfo] = useState('')
-  const lang = getLang()
+  const lang = useLang()
 
   const [desktop, setDesktop] = useState(false)
   const [sheet, setSheet] = useState(false)
@@ -167,6 +169,21 @@ export default function SellPage() {
     const exact = products.find((p) => p.is_active && !p.deleted_at && p.barcodes?.includes(s))
     const hit = exact ?? results[0]
     if (hit) addProduct(hit)
+  }
+
+  // Camera scan: barcode wins, otherwise take the top slang/name match
+  function onScanDetected(code: string) {
+    const s = code.trim()
+    if (!s) return
+    const exact = products.find((p) => p.is_active && !p.deleted_at && p.barcodes?.includes(s))
+    const hit = exact ?? (searchProducts(products as any, s, 1) as CProduct[])[0]
+    if (hit) {
+      addProduct(hit)
+    } else {
+      setSearch(s)
+      setError(`No part found for code ${s}`)
+    }
+    setScanning(false)
   }
 
   function changeTier(t: Tier) {
@@ -590,6 +607,7 @@ export default function SellPage() {
             </div>
           </div>
 
+          <div className="flex gap-2">
           <input
             ref={searchRef}
             autoFocus={desktop}
@@ -604,6 +622,17 @@ export default function SellPage() {
             placeholder={tr('searchPart', lang)}
             className="w-full rounded-xl border border-charcoal-3 bg-charcoal-2 px-4 py-3.5 text-lg placeholder:text-muted/60 focus:border-brand focus:outline-none"
           />
+          <button
+            type="button"
+            onClick={() => setScanning(true)}
+            aria-label="Scan a barcode with the camera"
+            title="Scan with camera"
+            className="shrink-0 rounded-xl border border-charcoal-3 bg-charcoal-2 px-4 text-xl hover:bg-charcoal-3"
+          >
+            📷
+          </button>
+          </div>
+          {scanning && <CameraScanner onDetect={onScanDetected} onClose={() => setScanning(false)} />}
 
           {preparing && <Alert kind="info">Getting your parts list ready. This happens once and may take a moment...</Alert>}
           {catalog.status === 'error' && products.length === 0 && (

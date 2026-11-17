@@ -158,6 +158,9 @@ export default function SalePage() {
 
       <div className="mx-auto flex max-w-sm flex-wrap justify-center gap-2 print:hidden">
         <Button onClick={() => window.print()}>Print receipt</Button>
+        <Link href={`/sales/${id}/invoice`} className="inline-flex items-center rounded-lg border border-charcoal-3 px-4 py-2.5 text-sm font-semibold hover:bg-charcoal-3">
+          Print invoice
+        </Link>
         <a href={wa} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-lg border border-charcoal-3 px-4 py-2.5 text-sm font-semibold hover:bg-charcoal-3">
           Send on WhatsApp
         </a>

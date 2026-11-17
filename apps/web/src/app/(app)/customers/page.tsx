@@ -19,7 +19,10 @@ export default function CustomersPage() {
 
   const [text, setText] = useState('')
   const [q, setQ] = useState('')
-  const [filter, setFilter] = useState('all')
+  // Honour ?filter=owing so the "Deni" sidebar entry lands pre-filtered (no useSearchParams needed)
+  const [filter, setFilter] = useState(() =>
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('filter') === 'owing' ? 'owing' : 'all',
+  )
   const [sort, setSort] = useState('name')
   const [page, setPage] = useState(0)
   const [rows, setRows] = useState<COverview[] | null>(null)

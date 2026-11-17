@@ -3,10 +3,12 @@
 // for the most-used screens (nav, Sell, Till, Customers, Dashboard).
 // Receipts and reports fall back to English for legal text, with
 // Swahili labels where it helps the customer.
+import { useSyncExternalStore } from 'react'
 
 export type Lang = 'en' | 'sw'
 
 const LANG_KEY = 'pos_lang_v1'
+const LANG_EVENT = 'nafpos-lang-change'
 
 export function getLang(): Lang {
   try {
@@ -16,9 +18,27 @@ export function getLang(): Lang {
   return 'en'
 }
 
+function subscribeLang(cb: () => void): () => void {
+  window.addEventListener(LANG_EVENT, cb)
+  window.addEventListener('storage', cb)
+  return () => {
+    window.removeEventListener(LANG_EVENT, cb)
+    window.removeEventListener('storage', cb)
+  }
+}
+
+// Reactive language hook — every screen using this re-renders instantly
+// when the user toggles EN/SW (localStorage alone can't trigger a re-render).
+export function useLang(): Lang {
+  return useSyncExternalStore(subscribeLang, getLang, () => 'en' as Lang)
+}
+
 export function setLang(l: Lang) {
   try {
     localStorage.setItem(LANG_KEY, l)
+  } catch {}
+  try {
+    window.dispatchEvent(new Event(LANG_EVENT))
   } catch {}
 }
 
@@ -26,6 +46,8 @@ const DICT: Record<string, Record<Lang, string>> = {
   sell: { en: 'Sell', sw: 'Uza' },
   sales: { en: 'Sales', sw: 'Mauzo' },
   customers: { en: 'Customers', sw: 'Wateja' },
+  deni: { en: 'Deni', sw: 'Deni' },
+  commissions: { en: 'Fundi commissions', sw: 'Kamisheni za fundi' },
   inventory: { en: 'Inventory', sw: 'Bidhaa' },
   purchases: { en: 'Purchases', sw: 'Manunuzi' },
   reports: { en: 'Reports', sw: 'Ripoti' },

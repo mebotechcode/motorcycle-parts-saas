@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { ROLE_LABEL, useSession } from '@/lib/session'
 import { Spinner } from '@/components/ui'
 import OfflineStatus from '@/components/OfflineStatus'
-import { getLang, setLang, t, type Lang } from '@/lib/i18n'
+import { setLang, t, useLang, type Lang } from '@/lib/i18n'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -15,16 +15,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { loading, session, claims, signOut } = useSession()
   const [businessName, setBusinessName] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [lang, setLangState] = useState<Lang>('en')
-
-  useEffect(() => {
-    setLangState(getLang())
-  }, [])
+  const lang = useLang()
 
   const toggleLang = () => {
     const next: Lang = lang === 'en' ? 'sw' : 'en'
     setLang(next)
-    setLangState(next)
     // Persist to profile so it follows the user across devices
     supabase.from('profiles').update({ language: next }).then(() => {})
   }
@@ -86,9 +81,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           { href: '/sell', label: t('sell', lang) },
           { href: '/sales', label: t('sales', lang) },
           { href: '/customers', label: t('customers', lang) },
+          { href: '/deni', label: t('deni', lang) },
           { href: '/till', label: t('till', lang) },
         ]
       : []),
+    ...(role === 'owner' || role === 'manager' ? [{ href: '/customers/commissions', label: t('commissions', lang) }] : []),
     { href: '/inventory', label: t('inventory', lang) },
     ...(role === 'owner' || role === 'manager' || role === 'storekeeper' ? [{ href: '/purchases', label: t('purchases', lang) }] : []),
     ...(role === 'owner' || role === 'manager'
@@ -106,7 +103,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       {/* ---------- top bar ---------- */}
-      <header className="print:hidden sticky top-0 z-30 border-b border-charcoal-3 bg-charcoal/95 backdrop-blur">
+      <header className="print:hidden sticky top-0 z-30 border-b border-charcoal-3 bg-charcoal">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           {/* hamburger: phones and small tablets only */}
           <button
@@ -166,7 +163,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* ---------- mobile menu (slides in from the left) ---------- */}
       <div
         onClick={() => setMenuOpen(false)}
-        className={`print:hidden fixed inset-0 z-40 bg-black/60 transition-opacity lg:hidden ${
+        className={`print:hidden fixed inset-0 z-40 bg-black/80 transition-opacity lg:hidden ${
           menuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       />

@@ -7,7 +7,6 @@ import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { waNumber } from '@/lib/pos'
-import { getLang, t as tr } from '@/lib/i18n'
 
 type Row = {
   mechanic_id: string
@@ -22,7 +21,6 @@ type Row = {
 export default function CommissionsPage() {
   const { claims } = useSession()
   const manager = claims.tenant_role === 'owner' || claims.tenant_role === 'manager'
-  const lang = getLang()
 
   const [rows, setRows] = useState<Row[] | null>(null)
   const [error, setError] = useState('')
