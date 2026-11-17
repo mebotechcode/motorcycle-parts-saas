@@ -20,6 +20,7 @@ Type `Y`. This sends migrations `21` to `26`:
 | `20261029000025_receive_transfer_notes.sql` | `receive_transfer` requires a note for any line received short (`discrepancy_note`) |
 | `20261029000026_weighted_average_cost.sql` | Goods receipt (GRN) now blends the price into the stock value instead of overwriting the buying price |
 | `20261029000027_import_kenya.sql` | CSV/Excel import also carries shelf location, aisle/rack/bin, slang aliases and KRA HS/eTIMS codes |
+| `20261117000028_subscription_invoice_self_heal.sql` | `create_subscription_invoice` self-heals a missing subscriptions row (expired Starter) instead of returning `invoice_id: null` |
 
 Then in the SQL Editor run: `notify pgrst, 'reload schema';`
 

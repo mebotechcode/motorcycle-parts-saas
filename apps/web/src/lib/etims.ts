@@ -1,11 +1,21 @@
 // KRA eTIMS helpers: QR payload, queue status, receipt lines.
 // The QR encodes the KRA verification string (PIN|CU|receipt|total|date).
-// We render it with the public QR image service when online; offline
-// receipts show the payload as text so the sale is never blocked.
+// The QR is generated locally (no network call), so eTIMS receipts keep a
+// scannable QR even when the shop is offline.
+import qrcode from 'qrcode-generator'
 
-export function etimsQrUrl(payload: string | null | undefined, size = 140): string | null {
+// Returns a data: URL for the QR image, or null if the payload cannot be
+// encoded (e.g. it is too long for the maximum QR size).
+export function etimsQrDataUrl(payload: string | null | undefined, cellSize = 4, margin = 2): string | null {
   if (!payload) return null
-  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=4&data=${encodeURIComponent(payload)}`
+  try {
+    const qr = qrcode(0, 'M') // 0 = smallest fitting version, error correction M
+    qr.addData(payload, 'Byte')
+    qr.make()
+    return qr.createDataURL(cellSize, margin)
+  } catch {
+    return null
+  }
 }
 
 export function etimsQrPayload(sale: any, tenant: any): string {
