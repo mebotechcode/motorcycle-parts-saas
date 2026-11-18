@@ -32,7 +32,7 @@ export default function LoginPage() {
     const { data: sess } = await supabase.auth.getSession()
     const claims = decodeClaims(sess.session?.access_token)
     // SaaS operator (platform admin, no shop) goes to the console, not a shop dashboard
-    router.replace(claims.platform_admin && !claims.tenant_id ? '/admin' : '/dashboard')
+    router.replace(claims.platform_admin && !claims.tenant_id ? '/admin/mfa' : '/dashboard')
   }
 
   return (
