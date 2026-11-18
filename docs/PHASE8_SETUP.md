@@ -23,6 +23,7 @@ Type `Y`. This sends migrations `21` to `26`:
 | `20261117000028_subscription_invoice_self_heal.sql` | `create_subscription_invoice` self-heals a missing subscriptions row (expired Starter) instead of returning `invoice_id: null` |
 | `20261117000029_admin_dashboard.sql` | Super-admin console: `admin_audit_log` + `admin_overview` / `admin_tenants` / `admin_recent_actions` / `admin_set_tenant_status` / `admin_extend_trial` / `admin_set_plan` (all re-check `private.is_platform_admin()`, all audited) |
 | `20261118000030_admin_v2.sql` | Super-admin v2: paginated `admin_tenants(q,status,page,page_size)` (25/page, search, All/Active/Suspended/Needs attention); `admin_shop` detail (staff, invoices, health, notes); `admin_mark_invoice_paid` / `admin_void_invoice` / `admin_add_note`; `admin_support_notes` table |
+| `20261118000031_admin_v3.sql` | Super-admin v3: `login_activity` (trigger on `auth.sessions` → IP + user-agent); `admin_login_activity` / `admin_active_sessions` / `admin_health`; IP/UA stamped on `admin_audit_log` |
 
 Then in the SQL Editor run: `notify pgrst, 'reload schema';`
 
