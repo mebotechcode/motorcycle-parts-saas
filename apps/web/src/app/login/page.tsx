@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { decodeClaims } from '@/lib/session'
 import { Alert, AuthShell, Button, Field } from '@/components/ui'
 
 export default function LoginPage() {
@@ -24,7 +25,14 @@ export default function LoginPage() {
       return
     }
     const invite = new URLSearchParams(window.location.search).get('invite')
-    router.replace(invite ? `/join?token=${invite}` : '/dashboard')
+    if (invite) {
+      router.replace(`/join?token=${invite}`)
+      return
+    }
+    const { data: sess } = await supabase.auth.getSession()
+    const claims = decodeClaims(sess.session?.access_token)
+    // SaaS operator (platform admin, no shop) goes to the console, not a shop dashboard
+    router.replace(claims.platform_admin && !claims.tenant_id ? '/admin' : '/dashboard')
   }
 
   return (

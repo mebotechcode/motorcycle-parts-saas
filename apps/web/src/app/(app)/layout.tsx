@@ -24,12 +24,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     supabase.from('profiles').update({ language: next }).then(() => {})
   }
 
-  // Guard: must be signed in AND belong to a business
+  // Guard: signed in AND (belongs to a business OR is platform admin).
+  // A tenant-less platform admin is the SaaS operator — they get a minimal
+  // admin shell below, never the shop UI or onboarding.
   useEffect(() => {
     if (loading) return
     if (!session) router.replace('/login')
-    else if (!claims.tenant_id) router.replace('/onboarding')
-  }, [loading, session, claims.tenant_id, router])
+    else if (!claims.tenant_id && !claims.platform_admin) router.replace('/onboarding')
+    else if (!claims.tenant_id && claims.platform_admin && !pathname.startsWith('/admin')) router.replace('/admin')
+  }, [loading, session, claims.tenant_id, claims.platform_admin, pathname, router])
 
   useEffect(() => {
     if (!claims.tenant_id) return
@@ -71,7 +74,33 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [menuOpen])
 
-  if (loading || !session || !claims.tenant_id) return <Spinner />
+  if (loading || !session || (!claims.tenant_id && !claims.platform_admin)) return <Spinner />
+
+  // SaaS operator with no shop tenant: minimal admin-only shell
+  if (!claims.tenant_id && claims.platform_admin) {
+    return (
+      <div className="min-h-screen">
+        <header className="sticky top-0 z-30 border-b border-charcoal-3 bg-charcoal">
+          <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/naf-icon.png" alt="" className="h-9 w-9 rounded-full" />
+            <div className="min-w-0 flex-1">
+              <div className="font-display text-xl font-bold uppercase leading-none tracking-wide">NafPOS</div>
+              <div className="text-xs text-muted">{t('admin', lang)}</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => signOut().then(() => router.replace('/login'))}
+              className="rounded-lg border border-charcoal-3 px-3 py-1.5 text-sm font-semibold text-muted hover:bg-charcoal-3 hover:text-offwhite"
+            >
+              Sign out
+            </button>
+          </div>
+        </header>
+        <main className="mx-auto max-w-6xl px-4 py-5">{children}</main>
+      </div>
+    )
+  }
 
   const role = claims.tenant_role ?? ''
   const nav = [
@@ -97,7 +126,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/branches', label: t('branches', lang) },
     ...(role === 'owner' || role === 'manager' ? [{ href: '/staff', label: t('staff', lang) }] : []),
   ]
-  if (claims.platform_admin) nav.push({ href: '/admin', label: t('admin', lang) })
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
   const doSignOut = () => signOut().then(() => router.replace('/login'))
 

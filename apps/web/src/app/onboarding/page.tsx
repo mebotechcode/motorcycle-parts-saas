@@ -27,6 +27,10 @@ export default function OnboardingPage() {
       router.replace('/dashboard')
       return
     }
+    if (claims.platform_admin) {
+      router.replace('/admin')
+      return
+    }
     // Already a member of a business but the token has no tenant_id => the login hook is not enabled
     supabase
       .from('tenant_members')
@@ -35,7 +39,7 @@ export default function OnboardingPage() {
       .then(({ data }) => {
         if (data && data.length > 0) setHookProblem(true)
       })
-  }, [loading, session, claims.tenant_id, router])
+  }, [loading, session, claims.tenant_id, claims.platform_admin, router])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -61,7 +65,7 @@ export default function OnboardingPage() {
     router.replace('/dashboard')
   }
 
-  if (loading || !session) return <Spinner />
+  if (loading || !session || claims.platform_admin) return <Spinner />
 
   return (
     <AuthShell title="Set up your shop" subtitle="Tell us about your business. You can change this later.">
