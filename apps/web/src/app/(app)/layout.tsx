@@ -82,12 +82,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen">
         <header className="sticky top-0 z-30 border-b border-charcoal-3 bg-charcoal">
           <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/naf-icon.png" alt="" className="h-9 w-9 rounded-full" />
-            <div className="min-w-0 flex-1">
-              <div className="font-display text-xl font-bold uppercase leading-none tracking-wide">NafPOS</div>
-              <div className="text-xs text-muted">{t('admin', lang)}</div>
-            </div>
+            <Link href="/admin" className="flex min-w-0 flex-1 items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/naf-icon.png" alt="" className="h-9 w-9 rounded-full" />
+              <div className="min-w-0">
+                <div className="font-display text-xl font-bold uppercase leading-none tracking-wide">NafPOS</div>
+                <div className="text-xs text-muted">{t('admin', lang)}</div>
+              </div>
+            </Link>
             <button
               type="button"
               onClick={() => signOut().then(() => router.replace('/login'))}
