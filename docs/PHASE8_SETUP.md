@@ -21,6 +21,7 @@ Type `Y`. This sends migrations `21` to `26`:
 | `20261029000026_weighted_average_cost.sql` | Goods receipt (GRN) now blends the price into the stock value instead of overwriting the buying price |
 | `20261029000027_import_kenya.sql` | CSV/Excel import also carries shelf location, aisle/rack/bin, slang aliases and KRA HS/eTIMS codes |
 | `20261117000028_subscription_invoice_self_heal.sql` | `create_subscription_invoice` self-heals a missing subscriptions row (expired Starter) instead of returning `invoice_id: null` |
+| `20261117000029_admin_dashboard.sql` | Super-admin console: `admin_audit_log` + `admin_overview` / `admin_tenants` / `admin_recent_actions` / `admin_set_tenant_status` / `admin_extend_trial` / `admin_set_plan` (all re-check `private.is_platform_admin()`, all audited) |
 
 Then in the SQL Editor run: `notify pgrst, 'reload schema';`
 

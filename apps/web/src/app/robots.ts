@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       // App screens are behind auth; /join links carry personal invite tokens
       disallow: [
-        '/dashboard', '/sell', '/sales', '/inventory', '/purchases', '/suppliers',
+        '/admin', '/dashboard', '/sell', '/sales', '/inventory', '/purchases', '/suppliers',
         '/customers', '/reports', '/branches', '/staff', '/till', '/expenses',
         '/transfers', '/billing', '/onboarding', '/join', '/api',
       ],
