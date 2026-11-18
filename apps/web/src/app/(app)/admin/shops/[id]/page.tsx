@@ -114,23 +114,52 @@ export default function AdminShopPage() {
       {t && (
         <>
           <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              disabled={!!busy}
-              onClick={() => {
-                const next = t.status === 'suspended' ? 'active' : 'suspended'
-                if (
-                  window.confirm(
-                    `${next === 'suspended' ? 'Suspend' : 'Reactivate'} ${t.name}?${next === 'suspended' ? ' They will get read-only access immediately.' : ''}`,
-                  )
-                ) {
-                  run('admin_set_tenant_status', { p_tenant_id: t.id, p_status: next, p_note: 'shop page' }, `${t.name} is now ${next}.`)
-                }
-              }}
-              className="rounded-lg border border-charcoal-3 px-3 py-2 text-sm font-semibold hover:bg-charcoal-3 disabled:opacity-50"
-            >
-              {t.status === 'suspended' ? 'Reactivate shop' : 'Suspend shop'}
-            </button>
+            {t.status === 'closed' ? (
+              <button
+                type="button"
+                disabled={!!busy}
+                onClick={() => {
+                  if (window.confirm(`Reopen ${t.name}? They will be able to sign in again.`)) {
+                    run('admin_set_tenant_status', { p_tenant_id: t.id, p_status: 'active', p_note: 'shop page' }, `${t.name} is now active.`)
+                  }
+                }}
+                className="rounded-lg border border-charcoal-3 px-3 py-2 text-sm font-semibold hover:bg-charcoal-3 disabled:opacity-50"
+              >
+                Reopen shop
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  disabled={!!busy}
+                  onClick={() => {
+                    const next = t.status === 'suspended' ? 'active' : 'suspended'
+                    if (
+                      window.confirm(
+                        `${next === 'suspended' ? 'Suspend' : 'Reactivate'} ${t.name}?${next === 'suspended' ? ' They will get read-only access immediately.' : ''}`,
+                      )
+                    ) {
+                      run('admin_set_tenant_status', { p_tenant_id: t.id, p_status: next, p_note: 'shop page' }, `${t.name} is now ${next}.`)
+                    }
+                  }}
+                  className="rounded-lg border border-charcoal-3 px-3 py-2 text-sm font-semibold hover:bg-charcoal-3 disabled:opacity-50"
+                >
+                  {t.status === 'suspended' ? 'Reactivate shop' : 'Suspend shop'}
+                </button>
+                <button
+                  type="button"
+                  disabled={!!busy}
+                  onClick={() => {
+                    if (window.confirm(`Close ${t.name}? They lose access. Data is kept; you can reopen later.`)) {
+                      run('admin_set_tenant_status', { p_tenant_id: t.id, p_status: 'closed', p_note: 'shop page' }, `${t.name} is closed.`)
+                    }
+                  }}
+                  className="rounded-lg border border-red-900/60 px-3 py-2 text-sm font-semibold text-red-300 hover:bg-charcoal-3 disabled:opacity-50"
+                >
+                  Close shop
+                </button>
+              </>
+            )}
             <button
               type="button"
               disabled={!!busy}
