@@ -8,6 +8,7 @@ import { useSession } from '@/lib/session'
 import { Spinner } from '@/components/ui'
 import OfflineStatus from '@/components/OfflineStatus'
 import { setLang, t, useLang, type Lang } from '@/lib/i18n'
+import { adminAal } from '@/lib/mfa'
 
 type NavLink = { href: string; label: string }
 type NavGroup = { id: string; label: string; items: NavLink[] }
@@ -20,6 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [openGroup, setOpenGroup] = useState<string | null>(null)
   const [mobileGroup, setMobileGroup] = useState<string | null>(null)
+  const [adminAalState, setAdminAalState] = useState<'unknown' | 'aal1' | 'aal2'>('unknown')
   const desktopNavRef = useRef<HTMLElement>(null)
   const lang = useLang()
 
@@ -39,6 +41,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     else if (!claims.tenant_id && !claims.platform_admin) router.replace('/onboarding')
     else if (!claims.tenant_id && claims.platform_admin && !pathname.startsWith('/admin')) router.replace('/admin')
   }, [loading, session, claims.tenant_id, claims.platform_admin, pathname, router])
+
+  // Super-admin must complete TOTP (authenticator app) before the console.
+  // Shop users are never asked.
+  useEffect(() => {
+    if (loading) return
+    if (!session || !claims.platform_admin || claims.tenant_id) {
+      setAdminAalState('aal2')
+      return
+    }
+    let live = true
+    adminAal().then((level) => {
+      if (!live) return
+      setAdminAalState(level)
+      if (level === 'aal1' && pathname !== '/admin/mfa') router.replace('/admin/mfa')
+      if (level === 'aal2' && pathname === '/admin/mfa') router.replace('/admin')
+    })
+    return () => {
+      live = false
+    }
+  }, [loading, session, claims.platform_admin, claims.tenant_id, pathname, router])
 
   useEffect(() => {
     if (!claims.tenant_id) return
@@ -100,6 +122,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // SaaS operator with no shop tenant: minimal admin-only shell
   if (!claims.tenant_id && claims.platform_admin) {
+    if (adminAalState === 'unknown') return <Spinner />
+    if (adminAalState === 'aal1') {
+      if (pathname !== '/admin/mfa') return <Spinner />
+      return <>{children}</>
+    }
+    if (pathname === '/admin/mfa') return <Spinner />
     const adminNav = [
       { href: '/admin', label: t('adminShops', lang), match: (p: string) => p === '/admin' || p.startsWith('/admin/shops') },
       { href: '/admin/health', label: t('adminHealth', lang), match: (p: string) => p.startsWith('/admin/health') },
