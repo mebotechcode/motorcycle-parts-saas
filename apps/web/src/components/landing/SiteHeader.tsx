@@ -32,7 +32,8 @@ export default function SiteHeader() {
     : { href: '/signup', label: 'Start free trial' }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-charcoal-3 bg-charcoal">
+    <>
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-charcoal-3 bg-charcoal">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
         <button
           type="button"
@@ -121,5 +122,8 @@ export default function SiteHeader() {
         </div>
       </aside>
     </header>
+    {/* keeps page content below the fixed bar */}
+    <div className="h-16 shrink-0" aria-hidden />
+    </>
   )
 }
