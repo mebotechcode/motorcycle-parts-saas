@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
@@ -9,12 +9,17 @@ import { Spinner } from '@/components/ui'
 import OfflineStatus from '@/components/OfflineStatus'
 import { setLang, t, useLang, type Lang } from '@/lib/i18n'
 
+type NavLink = { href: string; label: string }
+type NavGroup = { id: string; label: string; items: NavLink[] }
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const { loading, session, claims, signOut } = useSession()
   const [businessName, setBusinessName] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [openGroup, setOpenGroup] = useState<string | null>(null)
+  const desktopNavRef = useRef<HTMLElement>(null)
   const lang = useLang()
 
   const toggleLang = () => {
@@ -43,8 +48,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       .then(({ data }) => setBusinessName(data?.name ?? ''))
   }, [claims.tenant_id])
 
-  // close the mobile menu when the page changes, or Escape is pressed
-  useEffect(() => setMenuOpen(false), [pathname])
+  // close menus when the page changes
+  useEffect(() => {
+    setMenuOpen(false)
+    setOpenGroup(null)
+  }, [pathname])
   // auto-transmit any queued eTIMS invoices — at most once per 5 minutes per device
   useEffect(() => {
     if (!claims.tenant_id) return
@@ -62,10 +70,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('online', kick)
   }, [claims.tenant_id])
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      setMenuOpen(false)
+      setOpenGroup(null)
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
+  useEffect(() => {
+    if (!openGroup) return
+    const onDown = (e: MouseEvent) => {
+      if (desktopNavRef.current && !desktopNavRef.current.contains(e.target as Node)) setOpenGroup(null)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [openGroup])
   // stop the page behind the menu from scrolling
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
@@ -120,31 +140,48 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   const role = claims.tenant_role ?? ''
-  const nav = [
-    { href: '/dashboard', label: t('dashboard', lang) },
-    ...(role === 'owner' || role === 'manager' || role === 'cashier'
-      ? [
-          { href: '/sell', label: t('sell', lang) },
-          { href: '/sales', label: t('sales', lang) },
-          { href: '/customers', label: t('customers', lang) },
-          { href: '/deni', label: t('deni', lang) },
-          { href: '/till', label: t('till', lang) },
-        ]
-      : []),
-    ...(role === 'owner' || role === 'manager' ? [{ href: '/customers/commissions', label: t('commissions', lang) }] : []),
-    { href: '/inventory', label: t('inventory', lang) },
-    ...(role === 'owner' || role === 'manager' || role === 'storekeeper' ? [{ href: '/purchases', label: t('purchases', lang) }] : []),
-    ...(role === 'owner' || role === 'manager'
-      ? [
-          { href: '/reports', label: t('reports', lang) },
-          { href: '/billing', label: t('billing', lang) },
-        ]
-      : []),
-    { href: '/branches', label: t('branches', lang) },
-    ...(role === 'owner' || role === 'manager' ? [{ href: '/staff', label: t('staff', lang) }] : []),
+  const counter: NavLink[] = []
+  if (role === 'owner' || role === 'manager' || role === 'cashier') {
+    counter.push(
+      { href: '/sell', label: t('sell', lang) },
+      { href: '/sales', label: t('sales', lang) },
+      { href: '/customers', label: t('customers', lang) },
+      { href: '/deni', label: t('deni', lang) },
+      { href: '/till', label: t('till', lang) },
+    )
+  }
+  const stock: NavLink[] = [{ href: '/inventory', label: t('inventory', lang) }]
+  if (role === 'owner' || role === 'manager' || role === 'storekeeper') {
+    stock.push({ href: '/purchases', label: t('purchases', lang) })
+  }
+  const money: NavLink[] = []
+  if (role === 'owner' || role === 'manager') {
+    money.push({ href: '/reports', label: t('reports', lang) }, { href: '/billing', label: t('billing', lang) })
+  }
+  const shop: NavLink[] = [{ href: '/branches', label: t('branches', lang) }]
+  if (role === 'owner' || role === 'manager') {
+    shop.push({ href: '/staff', label: t('staff', lang) }, { href: '/customers/commissions', label: t('commissions', lang) })
+  }
+  const groups: NavGroup[] = [
+    { id: 'home', label: t('dashboard', lang), items: [{ href: '/dashboard', label: t('dashboard', lang) }] },
   ]
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
+  if (counter.length) groups.push({ id: 'sell', label: t('navGroupSell', lang), items: counter })
+  if (stock.length) groups.push({ id: 'stock', label: t('navGroupStock', lang), items: stock })
+  if (money.length) groups.push({ id: 'money', label: t('navGroupMoney', lang), items: money })
+  if (shop.length) groups.push({ id: 'shop', label: t('navGroupShop', lang), items: shop })
+
+  const isActive = (href: string) => {
+    if (pathname === href) return true
+    if (!pathname.startsWith(href + '/')) return false
+    // Fundi commissions lives under /customers but is its own Shop item
+    if (href === '/customers' && pathname.startsWith('/customers/commissions')) return false
+    return true
+  }
   const doSignOut = () => signOut().then(() => router.replace('/login'))
+  const linkClass = (href: string) =>
+    `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${
+      isActive(href) ? 'bg-brand text-charcoal' : 'text-muted hover:bg-charcoal-3 hover:text-offwhite'
+    }`
 
   return (
     <div className="min-h-screen">
@@ -173,19 +210,59 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="truncate text-xs text-muted">{t(`role_${role || 'staff'}`, lang)}</div>
           </div>
 
-          {/* desktop links — scroll instead of overlapping the shop name */}
-          <nav className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto lg:flex">
-            {nav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${
-                  isActive(item.href) ? 'bg-brand text-charcoal' : 'text-muted hover:bg-charcoal-3 hover:text-offwhite'
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+          <nav ref={desktopNavRef} className="hidden min-w-0 flex-1 items-center gap-1 lg:flex">
+            {groups.map((group) => {
+              if (group.items.length === 1) {
+                const item = group.items[0]
+                return (
+                  <Link key={item.href} href={item.href} className={linkClass(item.href)}>
+                    {item.label}
+                  </Link>
+                )
+              }
+              const groupActive = group.items.some((item) => isActive(item.href))
+              const open = openGroup === group.id
+              return (
+                <div key={group.id} className="relative">
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    aria-haspopup="menu"
+                    onClick={() => setOpenGroup(open ? null : group.id)}
+                    className={`inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${
+                      groupActive ? 'bg-brand text-charcoal' : 'text-muted hover:bg-charcoal-3 hover:text-offwhite'
+                    }`}
+                  >
+                    {group.label}
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                      <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                  {open && (
+                    <div
+                      role="menu"
+                      className={`absolute top-full z-50 mt-1 min-w-[13rem] rounded-xl border border-charcoal-3 bg-charcoal-2 py-1 shadow-xl ${
+                        group.id === 'money' || group.id === 'shop' ? 'right-0' : 'left-0'
+                      }`}
+                    >
+                      {group.items.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          role="menuitem"
+                          onClick={() => setOpenGroup(null)}
+                          className={`block px-4 py-2.5 text-sm font-medium ${
+                            isActive(item.href) ? 'bg-brand text-charcoal' : 'text-offwhite hover:bg-charcoal-3'
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </nav>
 
           <div className="ml-auto flex shrink-0 items-center gap-2">
@@ -242,17 +319,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </svg>
           </button>
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`block rounded-xl px-4 py-3 text-lg font-medium ${
-                isActive(item.href) ? 'bg-brand text-charcoal' : 'text-offwhite hover:bg-charcoal-3'
-              }`}
-            >
-              {item.label}
-            </Link>
+        <nav className="flex-1 space-y-4 overflow-y-auto p-3">
+          {groups.map((group) => (
+            <div key={group.id}>
+              {group.items.length > 1 && (
+                <div className="px-4 pb-1 text-xs font-semibold uppercase tracking-wider text-muted">{group.label}</div>
+              )}
+              <div className="space-y-1">
+                {group.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`block rounded-xl px-4 py-3 text-lg font-medium ${
+                      isActive(item.href) ? 'bg-brand text-charcoal' : 'text-offwhite hover:bg-charcoal-3'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
         <div className="border-t border-charcoal-3 p-3">
