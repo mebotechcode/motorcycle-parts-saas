@@ -60,7 +60,18 @@ export default function SignupPage() {
           {busy ? 'Creating...' : 'Create account'}
         </Button>
       </form>
-      <p className="mt-4 text-center text-sm text-muted">
+      <p className="mt-4 text-center text-xs text-muted">
+        By creating an account you agree to our{' '}
+        <Link href="/terms" className="text-brand hover:underline">
+          Terms
+        </Link>{' '}
+        and{' '}
+        <Link href="/privacy" className="text-brand hover:underline">
+          Privacy policy
+        </Link>
+        .
+      </p>
+      <p className="mt-3 text-center text-sm text-muted">
         Already have an account?{' '}
         <Link href="/login" className="text-brand hover:underline">
           Sign in
