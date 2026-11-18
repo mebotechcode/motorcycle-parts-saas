@@ -7,6 +7,7 @@ import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { waNumber } from '@/lib/pos'
+import { t, useLang } from '@/lib/i18n'
 
 type Row = {
   mechanic_id: string
@@ -21,6 +22,7 @@ type Row = {
 export default function CommissionsPage() {
   const { claims } = useSession()
   const manager = claims.tenant_role === 'owner' || claims.tenant_role === 'manager'
+  const lang = useLang()
 
   const [rows, setRows] = useState<Row[] | null>(null)
   const [error, setError] = useState('')
@@ -60,16 +62,16 @@ export default function CommissionsPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-5">
       <Link href="/customers" className="text-sm text-muted hover:text-offwhite">
-        ← All customers
+        {t('backCustomers', lang)}
       </Link>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-bold">Fundi commissions</h1>
-          <p className="text-sm text-muted">Commissions owed to mechanics who bring customers to the shop.</p>
+          <h1 className="text-4xl font-bold">{t('commissions', lang)}</h1>
+          <p className="text-sm text-muted">{t('commissionsSub', lang)}</p>
         </div>
         {totalOwed > 0 && (
           <div className="text-right">
-            <div className="text-xs uppercase text-muted">Total owed</div>
+            <div className="text-xs uppercase text-muted">{t('totalOwed', lang)}</div>
             <div className="font-display text-3xl font-bold text-brand">KES {money(totalOwed)}</div>
           </div>
         )}

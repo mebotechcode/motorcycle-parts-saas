@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { ROLE_LABEL, useSession } from '@/lib/session'
+import { t, useLang } from '@/lib/i18n'
 import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 
 type Branch = { id: string; name: string; code: string }
@@ -15,6 +16,7 @@ export default function StaffPage() {
   const { claims, session } = useSession()
   const isOwner = claims.tenant_role === 'owner'
   const canView = isOwner || claims.tenant_role === 'manager'
+  const lang = useLang()
 
   const [ready, setReady] = useState(false)
   const [branches, setBranches] = useState<Branch[]>([])
@@ -157,12 +159,12 @@ export default function StaffPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-4xl font-bold">Staff</h1>
+      <h1 className="text-4xl font-bold">{t('staff', lang)}</h1>
       {error && <Alert>{error}</Alert>}
       {info && <Alert kind="success">{info}</Alert>}
 
       <Card className="space-y-3">
-        <h2 className="text-xl font-bold">Team members</h2>
+        <h2 className="text-xl font-bold">{t('teamMembers', lang)}</h2>
         {members.map((m) => {
           const p = profiles[m.user_id]
           const isMe = m.user_id === session?.user.id

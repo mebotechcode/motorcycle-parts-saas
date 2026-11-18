@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Card, Select, Spinner } from '@/components/ui'
 import { canEditInventory } from '@/lib/inventory'
+import { t as tr, useLang } from '@/lib/i18n'
 
 type T = {
   id: string
@@ -25,6 +26,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 }
 
 export default function TransfersPage() {
+  const lang = useLang()
   const { claims } = useSession()
   const canEdit = canEditInventory(claims.tenant_role)
   const [rows, setRows] = useState<T[] | null>(null)
@@ -61,7 +63,7 @@ export default function TransfersPage() {
     if (canEdit) load()
   }, [canEdit, load])
 
-  if (!canEdit) return <Alert kind="info">Only the owner, managers and storekeepers can see transfers.</Alert>
+  if (!canEdit) return <Alert kind="info">{tr('onlyTransfers', lang)}</Alert>
 
   const mine = (id: string) => claims.all_branches || (claims.branch_ids ?? []).includes(id)
 
@@ -69,20 +71,20 @@ export default function TransfersPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-bold">Transfers</h1>
-          <p className="text-sm text-muted">Move stock from one branch to another.</p>
+          <h1 className="text-4xl font-bold">{tr('transfers', lang)}</h1>
+          <p className="text-sm text-muted">{tr('transfersSub', lang)}</p>
         </div>
         <Link href="/transfers/new" className="rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-charcoal hover:bg-brand-hover">
-          + New transfer
+          {tr('newTransfer', lang)}
         </Link>
       </div>
 
       <div className="w-48">
         <Select value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="all">All transfers</option>
-          <option value="in_transit">On its way</option>
-          <option value="received">Received</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="all">{tr('allTransfers', lang)}</option>
+          <option value="in_transit">{tr('onItsWay', lang)}</option>
+          <option value="received">{tr('receivedStatus', lang)}</option>
+          <option value="cancelled">{tr('cancelled', lang)}</option>
         </Select>
       </div>
 
@@ -92,7 +94,7 @@ export default function TransfersPage() {
         <Spinner />
       ) : rows.length === 0 ? (
         <Card>
-          <p className="text-muted">No transfers yet.</p>
+          <p className="text-muted">{tr('noTransfers', lang)}</p>
         </Card>
       ) : (
         <div className="space-y-2">
