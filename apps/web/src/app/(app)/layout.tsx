@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { ROLE_LABEL, useSession } from '@/lib/session'
+import { useSession } from '@/lib/session'
 import { Spinner } from '@/components/ui'
 import OfflineStatus from '@/components/OfflineStatus'
 import { setLang, t, useLang, type Lang } from '@/lib/i18n'
@@ -150,14 +150,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen">
       {/* ---------- top bar ---------- */}
       <header className="print:hidden fixed inset-x-0 top-0 z-50 border-b border-charcoal-3 bg-charcoal">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 lg:gap-3">
           {/* hamburger: phones and small tablets only */}
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
             aria-expanded={menuOpen}
-            className="-ml-2 rounded-lg p-2 text-offwhite hover:bg-charcoal-3 lg:hidden"
+            className="-ml-2 shrink-0 rounded-lg p-2 text-offwhite hover:bg-charcoal-3 lg:hidden"
           >
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M4 7h16M4 12h16M4 17h16" />
@@ -165,24 +165,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </button>
 
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/naf-icon.png" alt="" className="h-9 w-9 rounded-full" />
-          <div className="min-w-0 flex-1">
+          <img src="/naf-icon.png" alt="" className="h-9 w-9 shrink-0 rounded-full" />
+          <div className="min-w-0 flex-1 lg:max-w-[10.5rem] lg:flex-none">
             <div className="truncate font-display text-xl font-bold uppercase leading-none tracking-wide">
               {businessName || 'NafPOS'}
             </div>
-            <div className="text-xs text-muted">{ROLE_LABEL[role] ?? role}</div>
+            <div className="truncate text-xs text-muted">{t(`role_${role || 'staff'}`, lang)}</div>
           </div>
-          <button
-            type="button"
-            onClick={toggleLang}
-            aria-label="Toggle language / Badili lugha"
-            className="rounded-lg border border-charcoal-3 px-2.5 py-1.5 text-xs font-semibold text-muted hover:bg-charcoal-3 hover:text-offwhite"
-          >
-            {lang === 'en' ? 'EN | SW' : 'SW | EN'}
-          </button>
 
-          {/* desktop links */}
-          <nav className="hidden items-center gap-1 lg:flex">
+          {/* desktop links — scroll instead of overlapping the shop name */}
+          <nav className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto lg:flex">
             {nav.map((item) => (
               <Link
                 key={item.href}
@@ -195,12 +187,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </Link>
             ))}
           </nav>
-          <button
-            onClick={doSignOut}
-            className="hidden rounded-lg border border-charcoal-3 px-3 py-1.5 text-sm text-muted hover:bg-charcoal-3 hover:text-offwhite lg:block"
-          >
-            {t('signOut', lang)}
-          </button>
+
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleLang}
+              aria-label="Toggle language / Badili lugha"
+              className="rounded-lg border border-charcoal-3 px-2.5 py-1.5 text-xs font-semibold text-muted hover:bg-charcoal-3 hover:text-offwhite"
+            >
+              {lang === 'en' ? 'EN | SW' : 'SW | EN'}
+            </button>
+            <button
+              onClick={doSignOut}
+              className="hidden rounded-lg border border-charcoal-3 px-3 py-1.5 text-sm text-muted hover:bg-charcoal-3 hover:text-offwhite lg:block"
+            >
+              {t('signOut', lang)}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -226,7 +229,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="truncate font-display text-lg font-bold uppercase leading-none">
               {businessName || 'NafPOS'}
             </div>
-            <div className="text-xs text-muted">{ROLE_LABEL[role] ?? role}</div>
+            <div className="text-xs text-muted">{t(`role_${role || 'staff'}`, lang)}</div>
           </div>
           <button
             type="button"

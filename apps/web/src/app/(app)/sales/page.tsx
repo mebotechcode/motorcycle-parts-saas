@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Card, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
+import { t as tr, useLang } from '@/lib/i18n'
 
 type Sale = {
   id: string
@@ -52,6 +53,7 @@ function range(period: string) {
 export default function SalesPage() {
   const { claims } = useSession()
   const role = claims.tenant_role
+  const lang = useLang()
   const [period, setPeriod] = useState('today')
   const [text, setText] = useState('')
   const [review, setReview] = useState(false)
@@ -102,34 +104,34 @@ export default function SalesPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-bold">Sales</h1>
-          <p className="text-sm text-muted">{role === 'cashier' ? 'Your sales' : 'All sales you can access'}</p>
+          <h1 className="text-4xl font-bold">{tr('sales', lang)}</h1>
+          <p className="text-sm text-muted">{role === 'cashier' ? tr('yourSales', lang) : tr('allSalesAccess', lang)}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/expenses" className="rounded-lg border border-charcoal-3 px-4 py-2.5 text-sm font-semibold hover:bg-charcoal-3">
-            Expenses
+            {tr('expenses', lang)}
           </Link>
           <Link href="/till" className="rounded-lg border border-charcoal-3 px-4 py-2.5 text-sm font-semibold hover:bg-charcoal-3">
-            Till / cash-up
+            {tr('tillCashup', lang)}
           </Link>
           <Link href="/sell" className="rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-charcoal hover:bg-brand-hover">
-            + New sale
+            {tr('newSale', lang)}
           </Link>
         </div>
       </div>
 
       <Card className="grid gap-3 sm:grid-cols-2">
         <Select value={period} onChange={(e) => setPeriod(e.target.value)}>
-          <option value="today">Today</option>
-          <option value="yesterday">Yesterday</option>
-          <option value="7days">Last 7 days</option>
-          <option value="month">This month</option>
-          <option value="all">All time</option>
+          <option value="today">{tr('today', lang)}</option>
+          <option value="yesterday">{tr('yesterday', lang)}</option>
+          <option value="7days">{tr('last7days', lang)}</option>
+          <option value="month">{tr('thisMonth', lang)}</option>
+          <option value="all">{tr('allTime', lang)}</option>
         </Select>
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Find a receipt number"
+          placeholder={tr('findReceipt', lang)}
           className="w-full rounded-lg border border-charcoal-3 bg-charcoal px-3 py-2.5 placeholder:text-muted/60 focus:border-brand focus:outline-none"
         />
       </Card>

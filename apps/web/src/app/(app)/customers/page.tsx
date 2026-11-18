@@ -8,6 +8,7 @@ import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { TYPE_LABEL, type COverview } from '@/lib/customers'
+import { t, useLang } from '@/lib/i18n'
 
 const PAGE = 25
 
@@ -16,6 +17,7 @@ export default function CustomersPage() {
   const { claims } = useSession()
   const role = claims.tenant_role
   const manager = role === 'owner' || role === 'manager'
+  const lang = useLang()
 
   const [text, setText] = useState('')
   const [q, setQ] = useState('')
@@ -101,21 +103,23 @@ export default function CustomersPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-bold">Customers</h1>
-          <p className="text-sm text-muted">{rows === null ? 'Loading...' : `${total} customer${total === 1 ? '' : 's'}`}</p>
+          <h1 className="text-4xl font-bold">{t('customers', lang)}</h1>
+          <p className="text-sm text-muted">
+            {rows === null ? t('loading', lang) : `${total} ${t(total === 1 ? 'customerOne' : 'customerMany', lang)}`}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {manager && (
             <Link href="/customers/commissions" className="rounded-lg border border-charcoal-3 px-4 py-2.5 text-sm font-semibold hover:bg-charcoal-3">
-              Fundi commissions
+              {t('commissions', lang)}
             </Link>
           )}
           {manager && (
             <Link href="/customers/remind" className="rounded-lg border border-charcoal-3 px-4 py-2.5 text-sm font-semibold hover:bg-charcoal-3">
-              Remind debtors
+              {t('remindDebtors', lang)}
             </Link>
           )}
-          <Button onClick={() => setAdding(!adding)}>+ Add customer</Button>
+          <Button onClick={() => setAdding(!adding)}>{t('addCustomer', lang)}</Button>
         </div>
       </div>
 
@@ -162,18 +166,18 @@ export default function CustomersPage() {
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Search by name or phone"
+          placeholder={t('searchNamePhone', lang)}
           className="w-full rounded-lg border border-charcoal-3 bg-charcoal px-3 py-2.5 placeholder:text-muted/60 focus:border-brand focus:outline-none"
         />
         <div className="grid grid-cols-2 gap-2">
           <Select value={filter} onChange={(e) => { setFilter(e.target.value); setPage(0) }}>
-            <option value="all">All customers</option>
-            <option value="owing">Owing money</option>
-            <option value="over">Over credit limit</option>
+            <option value="all">{t('allCustomers', lang)}</option>
+            <option value="owing">{t('owingMoney', lang)}</option>
+            <option value="over">{t('overCreditLimit', lang)}</option>
           </Select>
           <Select value={sort} onChange={(e) => { setSort(e.target.value); setPage(0) }}>
-            <option value="name">Sort by name</option>
-            <option value="balance">Biggest debt first</option>
+            <option value="name">{t('sortByName', lang)}</option>
+            <option value="balance">{t('biggestDebtFirst', lang)}</option>
           </Select>
         </div>
       </Card>

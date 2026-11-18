@@ -3,15 +3,17 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { ROLE_LABEL, useSession } from '@/lib/session'
+import { useSession } from '@/lib/session'
 import { Card } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { todayEAT } from '@/lib/reports'
+import { t, useLang } from '@/lib/i18n'
 
 type Sub = { status: string; trial_ends_at: string | null; plans: { name: string } | null } | null
 
 export default function DashboardPage() {
   const { claims, session } = useSession()
+  const lang = useLang()
   const [counts, setCounts] = useState({ branches: 0, staff: 0, products: 0, low: 0 })
   const [sub, setSub] = useState<Sub>(null)
   const [today, setToday] = useState<{ count: number; total: number } | null>(null)
@@ -82,18 +84,25 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-bold">Hello{name ? `, ${name}` : ''}</h1>
-        <p className="text-muted">You are signed in as {ROLE_LABEL[claims.tenant_role ?? ''] ?? 'staff'}.</p>
+        <h1 className="text-4xl font-bold">
+          {t('hello', lang)}
+          {name ? `, ${name}` : ''}
+        </h1>
+        <p className="text-muted">
+          {t('signedInAs', lang)} {t(`role_${claims.tenant_role || 'staff'}`, lang)}.
+        </p>
       </div>
 
       {canSeeBilling && sub?.status === 'trialing' && (
         <Link href="/billing">
           <Card className="border-brand/40 hover:border-brand/60">
-            <div className="text-sm text-muted">Free trial · open billing to subscribe</div>
+            <div className="text-sm text-muted">{t('freeTrial', lang)}</div>
             <div className="font-display text-2xl font-bold uppercase text-brand">
-              {daysLeft} day{daysLeft === 1 ? '' : 's'} left
+              {daysLeft} {t(daysLeft === 1 ? 'dayLeft' : 'daysLeft', lang)}
             </div>
-            <div className="text-sm text-muted">Plan: {sub.plans?.name ?? 'Starter'} · pay with M-Pesa on the billing page</div>
+            <div className="text-sm text-muted">
+              {t('plan', lang)}: {sub.plans?.name ?? 'Starter'} · {t('planPayMpesa', lang)}
+            </div>
           </Card>
         </Link>
       )}
@@ -102,13 +111,23 @@ export default function DashboardPage() {
         <Card className={etims.failed > 0 ? 'border-red-500/40' : 'border-brand/40'}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-sm text-muted">KRA eTIMS queue</div>
+              <div className="text-sm text-muted">{t('etimsQueue', lang)}</div>
               <div className="text-lg font-bold">
-                {etims.queued > 0 && <span className="text-brand">{etims.queued} waiting to be sent</span>}
+                {etims.queued > 0 && (
+                  <span className="text-brand">
+                    {etims.queued} {t('etimsWaiting', lang)}
+                  </span>
+                )}
                 {etims.queued > 0 && etims.failed > 0 && <span className="text-muted"> · </span>}
-                {etims.failed > 0 && <span className="text-red-300">{etims.failed} failed</span>}
+                {etims.failed > 0 && (
+                  <span className="text-red-300">
+                    {etims.failed} {t('failed', lang)}
+                  </span>
+                )}
               </div>
-              <div className="text-xs text-muted">{etims.submitted} already sent to KRA</div>
+              <div className="text-xs text-muted">
+                {etims.submitted} {t('alreadySentKra', lang)}
+              </div>
             </div>
             <button
               type="button"
@@ -116,7 +135,7 @@ export default function DashboardPage() {
               disabled={etimsBusy}
               className="rounded-lg border border-charcoal-3 px-4 py-2 text-sm font-semibold hover:bg-charcoal-3 disabled:opacity-50"
             >
-              {etimsBusy ? 'Sending…' : 'Transmit now'}
+              {etimsBusy ? t('sending', lang) : t('transmitNow', lang)}
             </button>
           </div>
           {etimsMessage && <p className="mt-2 text-xs text-muted">{etimsMessage}</p>}
@@ -126,9 +145,11 @@ export default function DashboardPage() {
       {canSeeBilling && profit && (
         <Link href="/reports">
           <Card className="hover:border-brand/60">
-            <div className="text-sm text-muted">Profit today (after expenses)</div>
+            <div className="text-sm text-muted">{t('profitToday', lang)}</div>
             <div className={`font-display text-5xl font-bold ${Number(profit.net_profit) >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>KES {money(profit.net_profit)}</div>
-            <div className="text-sm text-muted">Gross profit KES {money(profit.gross_profit)} · expenses KES {money(profit.expenses)} · view reports</div>
+            <div className="text-sm text-muted">
+              {t('grossProfit', lang)} KES {money(profit.gross_profit)} · {t('expenses', lang)} KES {money(profit.expenses)} · {t('viewReports', lang)}
+            </div>
           </Card>
         </Link>
       )}
@@ -136,9 +157,11 @@ export default function DashboardPage() {
       {claims.tenant_role !== 'storekeeper' && (
         <Link href="/sales">
           <Card className="hover:border-brand/60">
-            <div className="text-sm text-muted">{claims.tenant_role === 'cashier' ? 'Your sales today' : 'Sales today'}</div>
+            <div className="text-sm text-muted">{claims.tenant_role === 'cashier' ? t('yourSalesToday', lang) : t('salesToday', lang)}</div>
             <div className="font-display text-5xl font-bold text-brand">KES {money(today?.total ?? 0)}</div>
-            <div className="text-sm text-muted">{today?.count ?? 0} sale{(today?.count ?? 0) === 1 ? '' : 's'}</div>
+            <div className="text-sm text-muted">
+              {today?.count ?? 0} {t((today?.count ?? 0) === 1 ? 'saleOne' : 'saleMany', lang)}
+            </div>
           </Card>
         </Link>
       )}
@@ -146,9 +169,11 @@ export default function DashboardPage() {
       {canSeeBilling && payable && payable.owed_count > 0 && (
         <Link href="/suppliers">
           <Card className="hover:border-brand/60">
-            <div className="text-sm text-muted">You owe suppliers</div>
+            <div className="text-sm text-muted">{t('youOweSuppliers', lang)}</div>
             <div className="font-display text-4xl font-bold">KES {money(payable.total_owed)}</div>
-            <div className="text-sm text-muted">{payable.owed_count} supplier{payable.owed_count === 1 ? '' : 's'} · tap to see and pay</div>
+            <div className="text-sm text-muted">
+              {payable.owed_count} {t(payable.owed_count === 1 ? 'supplierOne' : 'supplierMany', lang)}
+            </div>
           </Card>
         </Link>
       )}
@@ -156,9 +181,11 @@ export default function DashboardPage() {
       {canSeeBilling && owed && owed.owing_count > 0 && (
         <Link href="/customers/remind">
           <Card className="hover:border-brand/60">
-            <div className="text-sm text-muted">Customers owe you</div>
+            <div className="text-sm text-muted">{t('customersOweYou', lang)}</div>
             <div className="font-display text-4xl font-bold">KES {money(owed.total_owed)}</div>
-            <div className="text-sm text-muted">{owed.owing_count} customer{owed.owing_count === 1 ? '' : 's'} · send reminders</div>
+            <div className="text-sm text-muted">
+              {owed.owing_count} {t(owed.owing_count === 1 ? 'customerOne' : 'customerMany', lang)} · {t('sendReminders', lang)}
+            </div>
           </Card>
         </Link>
       )}
@@ -166,23 +193,23 @@ export default function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link href="/inventory">
           <Card className="h-full hover:border-brand/60">
-            <div className="text-sm text-muted">Products</div>
+            <div className="text-sm text-muted">{t('productsCount', lang)}</div>
             <div className="font-display text-4xl font-bold">{counts.products}</div>
           </Card>
         </Link>
         <Link href="/inventory">
           <Card className={`h-full hover:border-brand/60 ${counts.low > 0 ? 'border-brand/40' : ''}`}>
-            <div className="text-sm text-muted">Running low</div>
+            <div className="text-sm text-muted">{t('runningLow', lang)}</div>
             <div className={`font-display text-4xl font-bold ${counts.low > 0 ? 'text-brand' : ''}`}>{counts.low}</div>
           </Card>
         </Link>
         <Card>
-          <div className="text-sm text-muted">Branches</div>
+          <div className="text-sm text-muted">{t('branches', lang)}</div>
           <div className="font-display text-4xl font-bold">{counts.branches}</div>
         </Card>
         {canSeeBilling && (
           <Card>
-            <div className="text-sm text-muted">Staff</div>
+            <div className="text-sm text-muted">{t('staff', lang)}</div>
             <div className="font-display text-4xl font-bold">{counts.staff}</div>
           </Card>
         )}
@@ -191,11 +218,7 @@ export default function DashboardPage() {
       {canSeeBilling && !(etims && (etims.queued > 0 || etims.failed > 0)) && (
         <Card>
           <h2 className="text-xl font-bold">KRA eTIMS</h2>
-          <p className="mt-1 text-sm text-muted">
-            Receipts are queued automatically and transmit when this device is online. Live signing with KRA begins
-            after they onboard your OSCU/VSCU. Until then, NafPOS still issues a control-unit number so staff can
-            complete the receipt flow.
-          </p>
+          <p className="mt-1 text-sm text-muted">{t('etimsIntro', lang)}</p>
         </Card>
       )}
     </div>
