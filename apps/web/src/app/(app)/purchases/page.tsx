@@ -8,11 +8,13 @@ import { Alert, Card, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { canEditInventory } from '@/lib/inventory'
 import { PO_STATUS } from '@/lib/purchasing'
+import { t, useLang } from '@/lib/i18n'
 
 export default function PurchasesPage() {
   const { claims } = useSession()
   const role = claims.tenant_role
   const manager = role === 'owner' || role === 'manager'
+  const lang = useLang()
 
   const [tab, setTab] = useState<'orders' | 'received'>('orders')
   const [status, setStatus] = useState('open')
@@ -51,7 +53,7 @@ export default function PurchasesPage() {
     if (manager) supabase.rpc('suppliers_summary').then(({ data }) => setOwed(data))
   }, [manager])
 
-  if (!canEditInventory(role)) return <Alert kind="info">Only the owner, managers and storekeepers can see purchases.</Alert>
+  if (!canEditInventory(role)) return <Alert kind="info">{t('onlyPurchases', lang)}</Alert>
 
   const tabBtn = (t: 'orders' | 'received', label: string) => (
     <button type="button" onClick={() => setTab(t)} className={`rounded-lg px-4 py-2 text-sm font-medium ${tab === t ? 'bg-brand text-charcoal' : 'border border-charcoal-3 text-muted hover:bg-charcoal-3'}`}>
@@ -63,18 +65,18 @@ export default function PurchasesPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-bold">Purchases</h1>
-          <p className="text-sm text-muted">Order from suppliers and receive the goods.</p>
+          <h1 className="text-4xl font-bold">{t('purchases', lang)}</h1>
+          <p className="text-sm text-muted">{t('purchasesSub', lang)}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/suppliers" className="rounded-lg border border-charcoal-3 px-4 py-2.5 text-sm font-semibold hover:bg-charcoal-3">
-            Suppliers
+            {t('suppliers', lang)}
           </Link>
           <Link href="/purchases/order/new" className="rounded-lg border border-charcoal-3 px-4 py-2.5 text-sm font-semibold hover:bg-charcoal-3">
-            + New order
+            {t('newOrder', lang)}
           </Link>
           <Link href="/purchases/receive" className="rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-charcoal hover:bg-brand-hover">
-            Receive goods
+            {t('receiveGoods', lang)}
           </Link>
         </div>
       </div>
@@ -82,7 +84,7 @@ export default function PurchasesPage() {
       {manager && owed && Number(owed.total_owed) > 0 && (
         <Link href="/suppliers">
           <Card className="hover:border-brand/60">
-            <div className="text-sm text-muted">You owe suppliers</div>
+            <div className="text-sm text-muted">{t('youOweSuppliers', lang)}</div>
             <div className="font-display text-4xl font-bold text-brand">KES {money(owed.total_owed)}</div>
             <div className="text-xs text-muted">{owed.owed_count} supplier{owed.owed_count === 1 ? '' : 's'} · tap to see and pay</div>
           </Card>
@@ -90,8 +92,8 @@ export default function PurchasesPage() {
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        {tabBtn('orders', 'Orders')}
-        {tabBtn('received', 'Deliveries received')}
+        {tabBtn('orders', t('ordersTab', lang))}
+        {tabBtn('received', t('receivedTab', lang))}
         {tab === 'orders' && (
           <div className="ml-auto w-44">
             <Select value={status} onChange={(e) => setStatus(e.target.value)}>

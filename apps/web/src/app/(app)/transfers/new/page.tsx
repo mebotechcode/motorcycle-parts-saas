@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Select } from '@/components/ui'
 import { canEditInventory, qty } from '@/lib/inventory'
+import { t, useLang } from '@/lib/i18n'
 
 type Branch = { id: string; name: string }
 type Found = { id: string; name: string; sku: string; unit: string }
@@ -15,6 +16,7 @@ type Line = Found & { qty: string }
 export default function NewTransferPage() {
   const router = useRouter()
   const { claims } = useSession()
+  const lang = useLang()
   const [branches, setBranches] = useState<Branch[]>([])
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -117,7 +119,7 @@ export default function NewTransferPage() {
       <Link href="/transfers" className="text-sm text-muted hover:text-offwhite">
         ← Back to transfers
       </Link>
-      <h1 className="text-4xl font-bold">New transfer</h1>
+      <h1 className="text-4xl font-bold">{t('newTransferTitle', lang)}</h1>
 
       <form onSubmit={send} className="space-y-5">
         <Card className="space-y-4">

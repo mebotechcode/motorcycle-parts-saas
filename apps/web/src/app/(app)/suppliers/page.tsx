@@ -9,6 +9,7 @@ import { Alert, Button, Card, Field, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { canEditInventory } from '@/lib/inventory'
 import type { Supplier } from '@/lib/purchasing'
+import { t, useLang } from '@/lib/i18n'
 
 export default function SuppliersPage() {
   const router = useRouter()
@@ -16,6 +17,7 @@ export default function SuppliersPage() {
   const role = claims.tenant_role
   const manager = role === 'owner' || role === 'manager'
   const allowed = canEditInventory(role)
+  const lang = useLang()
 
   const [text, setText] = useState('')
   const [rows, setRows] = useState<Supplier[] | null>(null)
@@ -64,28 +66,28 @@ export default function SuppliersPage() {
     router.push(`/suppliers/${(data as any).id}`)
   }
 
-  if (!allowed) return <Alert kind="info">Only the owner, managers and storekeepers can see suppliers.</Alert>
+  if (!allowed) return <Alert kind="info">{t('onlySuppliers', lang)}</Alert>
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <Link href="/purchases" className="text-sm text-muted hover:text-offwhite">
-            ← Purchases
+            {t('backPurchases', lang)}
           </Link>
-          <h1 className="text-4xl font-bold">Suppliers</h1>
+          <h1 className="text-4xl font-bold">{t('suppliers', lang)}</h1>
         </div>
-        {manager && <Button onClick={() => setAdding(!adding)}>+ Add supplier</Button>}
+        {manager && <Button onClick={() => setAdding(!adding)}>{t('addSupplier', lang)}</Button>}
       </div>
 
       {manager && summary && (
         <div className="grid grid-cols-2 gap-3">
           <Card>
-            <div className="text-xs text-muted">You owe suppliers</div>
+            <div className="text-xs text-muted">{t('youOweSuppliers', lang)}</div>
             <div className="font-display text-3xl font-bold text-brand sm:text-4xl">KES {money(summary.total_owed)}</div>
           </Card>
           <Card>
-            <div className="text-xs text-muted">Suppliers owed</div>
+            <div className="text-xs text-muted">{t('suppliersOwed', lang)}</div>
             <div className="font-display text-3xl font-bold sm:text-4xl">{summary.owed_count}</div>
           </Card>
         </div>

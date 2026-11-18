@@ -7,6 +7,7 @@ import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { PRESET_LABEL, periodRange, todayEAT, type Preset } from '@/lib/reports'
+import { t, useLang } from '@/lib/i18n'
 
 type Exp = { id: string; incurred_on: string; amount: number; method: string; paid_to: string | null; description: string | null; reference: string | null; category_id: string | null; branch_id: string; created_by: string | null }
 
@@ -15,6 +16,7 @@ export default function ExpensesPage() {
   const role = claims.tenant_role
   const manager = role === 'owner' || role === 'manager'
   const allowed = manager || role === 'cashier'
+  const lang = useLang()
 
   const [preset, setPreset] = useState<Preset>('month')
   const [rows, setRows] = useState<Exp[] | null>(null)
@@ -71,7 +73,7 @@ export default function ExpensesPage() {
     return Object.entries(m).sort((a, b) => b[1] - a[1])
   }, [rows, cats]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!allowed) return <Alert kind="info">Only the owner, managers and cashiers record expenses.</Alert>
+  if (!allowed) return <Alert kind="info">{t('onlyExpenses', lang)}</Alert>
 
   async function addCategory() {
     const name = newCat.trim()
@@ -115,10 +117,10 @@ export default function ExpensesPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <Link href="/sales" className="text-sm text-muted hover:text-offwhite">
-            ← Sales
+            {t('backSales', lang)}
           </Link>
-          <h1 className="text-4xl font-bold">Expenses</h1>
-          <p className="text-sm text-muted">Rent, transport, airtime, salaries... money the shop spends that is not stock.</p>
+          <h1 className="text-4xl font-bold">{t('expenses', lang)}</h1>
+          <p className="text-sm text-muted">{t('expensesSub', lang)}</p>
         </div>
         <div className="w-44">
           <Select value={preset} onChange={(e) => setPreset(e.target.value as Preset)}>
@@ -135,7 +137,7 @@ export default function ExpensesPage() {
       {info && <Alert kind="success">{info}</Alert>}
 
       <Card className="space-y-3">
-        <h2 className="text-xl font-bold">Add an expense</h2>
+        <h2 className="text-xl font-bold">{t('addExpense', lang)}</h2>
         <form onSubmit={save} className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label="Amount (KES)" type="number" inputMode="decimal" min={0} step="any" value={amount} onChange={(e) => setAmount(e.target.value)} />

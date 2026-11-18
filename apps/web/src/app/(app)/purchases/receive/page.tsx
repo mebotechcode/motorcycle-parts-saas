@@ -10,10 +10,12 @@ import { money } from '@/lib/pos'
 import { uuid } from '@/lib/inventory'
 import { lineSum, type PLine } from '@/lib/purchasing'
 import ProductPicker from '@/components/purchasing/ProductPicker'
+import { t, useLang } from '@/lib/i18n'
 
 export default function ReceivePage() {
   const router = useRouter()
   const { claims } = useSession()
+  const lang = useLang()
   const role = claims.tenant_role
   const manager = role === 'owner' || role === 'manager'
   const allowed = manager || role === 'storekeeper'
@@ -149,10 +151,10 @@ export default function ReceivePage() {
   return (
     <form onSubmit={submit} className="space-y-5">
       <Link href="/purchases" className="text-sm text-muted hover:text-offwhite">
-        ← Purchases
+        {t('backPurchases', lang)}
       </Link>
       <div>
-        <h1 className="text-4xl font-bold">Receive goods</h1>
+        <h1 className="text-4xl font-bold">{t('receiveGoods', lang)}</h1>
         <p className="text-sm text-muted">Record a delivery. Stock goes up, your buying prices are updated, and the amount is added to what you owe the supplier.</p>
       </div>
 
