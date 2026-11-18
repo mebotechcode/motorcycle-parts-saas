@@ -97,6 +97,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/branches', label: t('branches', lang) },
     ...(role === 'owner' || role === 'manager' ? [{ href: '/staff', label: t('staff', lang) }] : []),
   ]
+  if (claims.platform_admin) nav.push({ href: '/admin', label: t('admin', lang) })
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
   const doSignOut = () => signOut().then(() => router.replace('/login'))
 

@@ -48,6 +48,7 @@ const DICT: Record<string, Record<Lang, string>> = {
   customers: { en: 'Customers', sw: 'Wateja' },
   deni: { en: 'Deni', sw: 'Deni' },
   commissions: { en: 'Fundi commissions', sw: 'Kamisheni za fundi' },
+  admin: { en: 'Super admin', sw: 'Meneja Mkuu' },
   inventory: { en: 'Inventory', sw: 'Bidhaa' },
   purchases: { en: 'Purchases', sw: 'Manunuzi' },
   reports: { en: 'Reports', sw: 'Ripoti' },
