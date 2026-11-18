@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Icon from '@/components/landing/Icon'
 import SiteHeader from '@/components/landing/SiteHeader'
+import SiteFooter from '@/components/landing/SiteFooter'
 import DashboardMock from '@/components/landing/DashboardMock'
 
 export const metadata: Metadata = {
@@ -13,7 +14,6 @@ export const metadata: Metadata = {
 
 // ---------------------------------------------------------------------
 // Support email shown on the public site; set NEXT_PUBLIC_SUPPORT_EMAIL in production.
-const CONTACT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || ''
 const PLANS = [
   {
     name: 'Starter',
@@ -70,7 +70,6 @@ const FAQ = [
 ]
 
 export default function Landing() {
-  const year = new Date().getFullYear()
   const jsonLd = [
     {
       '@context': 'https://schema.org',
@@ -291,26 +290,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ---------------- Footer ---------------- */}
-      <footer className="border-t border-charcoal-3">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted sm:flex-row">
-          <div className="flex items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/naf-icon.png" alt="" className="h-8 w-8 rounded-full" />
-            <span>© {year} NafPOS</span>
-          </div>
-          <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
-            <a href="#features" className="hover:text-offwhite">Features</a>
-            <a href="#pricing" className="hover:text-offwhite">Pricing</a>
-            <Link href="/login" className="hover:text-offwhite">Sign in</Link>
-            {CONTACT_EMAIL && (
-              <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-offwhite">
-                Contact
-              </a>
-            )}
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }

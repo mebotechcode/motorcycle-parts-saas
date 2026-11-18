@@ -7,6 +7,7 @@ import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { SessionProvider } from '@/lib/session'
 import RegisterSW from '@/components/RegisterSW'
+import CookieNotice from '@/components/CookieNotice'
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
@@ -59,7 +60,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          {children}
+          <CookieNotice />
+        </SessionProvider>
         <RegisterSW />
       </body>
     </html>
