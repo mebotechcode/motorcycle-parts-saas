@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 // ---------------------------------------------------------------------
 // Support email shown on the public site; set NEXT_PUBLIC_SUPPORT_EMAIL in production.
-const CONTACT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? 'hello@example.com'
+const CONTACT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || ''
 const PLANS = [
   {
     name: 'Starter',
@@ -43,11 +43,11 @@ const FEATURES = [
   { icon: 'shield', title: 'Private and secure', text: "Every shop's data is fully separated. Staff invitations are sent straight to their email.", live: true },
   { icon: 'box', title: 'Parts by bike model', text: 'Record which parts fit Boxer, TVS, Honda, Yamaha and more. Genuine, OEM and aftermarket versions side by side.', live: true },
   { icon: 'cart', title: 'Fast point of sale', text: 'Search by slang (kenda, coil, piston ring), add, take payment, print or share the receipt. Retail and wholesale prices with a price floor you control.', live: true },
-  { icon: 'book', title: 'Credit and debtors (deni)', text: 'Know who owes you, how much and since when. Credit limits, 7/14/30-day terms, debt aging and 1-tap WhatsApp reminders with itemized invoices.', live: true },
+  { icon: 'book', title: 'Credit and debtors (deni)', text: 'Know who owes you, how much and since when. Credit limits, 7/14/30-day terms, debt aging and WhatsApp reminders with itemized invoices.', live: true },
   { icon: 'phone', title: 'M-Pesa payments', text: 'Send an STK Push to the customer’s phone and see it matched to the sale automatically. Manual codes are checked for duplicates and verified at close.', live: true },
   { icon: 'offline', title: 'Keeps working offline', text: 'No internet? Keep selling. Everything syncs when you are back online — stock, credit and M-Pesa codes stay safe.', live: true },
   { icon: 'chart', title: 'Profit and reports', text: 'Best sellers, slow stock, low-stock alerts, blind cash-up and profit per item.', live: true },
-  { icon: 'receipt', title: 'KRA eTIMS ready', text: 'VAT, HS codes and an offline eTIMS queue with CU numbers and QR codes on every receipt.', live: true },
+  { icon: 'receipt', title: 'KRA eTIMS ready', text: 'VAT, HS codes and an offline eTIMS queue with CU numbers and QR codes on every receipt. Live signing with KRA starts after they onboard your device.', live: true },
   { icon: 'box', title: 'Bin & rack locations', text: 'Aisle, rack and box on every part so new storekeepers find small parts in seconds.', live: true },
   { icon: 'store', title: 'Fundi commissions', text: 'Track which mechanic brought the rider and what you owe them — settle payouts transparently.', live: true },
   { icon: 'phone', title: 'English & Swahili', text: 'Switch the whole till between English and Kiswahili. Receipts follow your language too.', live: true },
@@ -157,22 +157,13 @@ export default function Landing() {
       <section id="features" className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="text-3xl font-bold sm:text-4xl">Everything your shop needs</h2>
         <p className="mt-2 max-w-2xl text-muted">
-          We are building this in stages. What is ready today is marked <b className="text-offwhite">Available</b>; the rest is on the way.
+          Point of sale, stock, credit, M-Pesa and KRA eTIMS — built for motorcycle spare parts shops in Kenya.
         </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
             <div key={f.title} className="rounded-2xl border border-charcoal-3 bg-charcoal-2 p-5">
-              <div className="flex items-start justify-between">
-                <div className="rounded-xl bg-brand/15 p-2.5 text-brand">
-                  <Icon name={f.icon} />
-                </div>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                    f.live ? 'bg-emerald-500/15 text-emerald-300' : 'bg-charcoal-3 text-muted'
-                  }`}
-                >
-                  {f.live ? 'Available' : 'Coming soon'}
-                </span>
+              <div className="rounded-xl bg-brand/15 p-2.5 text-brand w-fit">
+                <Icon name={f.icon} />
               </div>
               <h3 className="mt-4 text-xl font-bold">{f.title}</h3>
               <p className="mt-1 text-sm text-muted">{f.text}</p>
@@ -189,7 +180,7 @@ export default function Landing() {
             {[
               ['1', 'Create your shop', 'Sign up, name your shop and your first branch. Your free trial starts straight away.'],
               ['2', 'Add your team', 'Invite your manager, cashiers and storekeeper by email and choose which branches each can use.'],
-              ['3', 'Start selling', 'Add your parts, then sell, track stock and watch the money come in.'],
+              ['3', 'Start selling', 'Add your parts, then record sales, track stock and take M-Pesa or cash.'],
             ].map(([n, t, d]) => (
               <div key={n} className="rounded-2xl border border-charcoal-3 bg-charcoal p-6">
                 <div className="font-display text-5xl font-bold text-brand">{n}</div>
@@ -312,7 +303,11 @@ export default function Landing() {
             <a href="#features" className="hover:text-offwhite">Features</a>
             <a href="#pricing" className="hover:text-offwhite">Pricing</a>
             <Link href="/login" className="hover:text-offwhite">Sign in</Link>
-            <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-offwhite">Contact</a>
+            {CONTACT_EMAIL && (
+              <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-offwhite">
+                Contact
+              </a>
+            )}
           </div>
         </div>
       </footer>
