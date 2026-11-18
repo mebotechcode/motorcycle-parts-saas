@@ -2,7 +2,7 @@
 //  - app files (/_next/static, icons): saved the first time, then served from the device
 //  - pages: network first, saved copy when offline
 // Data (Supabase) is never touched here: the app keeps its own offline copy.
-const VERSION = 'v1'
+const VERSION = 'v2'
 const STATIC = 'static-' + VERSION
 const PAGES = 'pages-' + VERSION
 const PRECACHE = ['/', '/login', '/dashboard', '/sell', '/sales', '/sales/queue', '/sales/pending', '/till', '/inventory', '/offline.html']
@@ -40,8 +40,27 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url)
   if (url.origin !== self.location.origin) return // Supabase, fonts: leave alone
 
-  // app files and images: saved copy first
-  if (url.pathname.startsWith('/_next/static/') || /\.(png|ico|svg|webmanifest|woff2?)$/.test(url.pathname)) {
+  // JS/CSS from a new deploy must win over an old saved copy (that is why
+  // the grouped navbar can look "stuck" after a merge). Network first,
+  // keep a copy for offline.
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(STATIC)
+        try {
+          const res = await fetch(req)
+          if (res.ok) cache.put(req, res.clone())
+          return res
+        } catch (e) {
+          return (await cache.match(req)) || Response.error()
+        }
+      })()
+    )
+    return
+  }
+
+  // images and fonts: saved copy first
+  if (/\.(png|ico|svg|webmanifest|woff2?)$/.test(url.pathname)) {
     event.respondWith(
       caches.open(STATIC).then(async (cache) => {
         const hit = await cache.match(req)

@@ -99,13 +99,23 @@ export function AuthShell({
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        <Link href="/" aria-label="Back to home">
+        <Link href="/" aria-label="Back to home" className="mb-8 flex flex-col items-center text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/nafpos-logo.png" alt="NafPOS" className="mx-auto mb-2 h-40 w-auto sm:h-44" />
+          <img
+            src="/naf-icon.png"
+            alt=""
+            className="h-28 w-28 mix-blend-lighten sm:h-32 sm:w-32"
+          />
+          <div className="font-display text-5xl font-bold uppercase leading-none tracking-wide sm:text-6xl">
+            Naf<span className="text-brand">POS</span>
+          </div>
+          <p className="mt-3 text-base font-semibold uppercase tracking-[0.22em] text-brand sm:text-lg">
+            Motor spares POS
+          </p>
         </Link>
         <div className="rounded-2xl border border-charcoal-3 bg-charcoal-2 p-6">
-          <h1 className="text-3xl font-bold">{title}</h1>
-          {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
+          <h1 className="text-3xl font-bold sm:text-4xl">{title}</h1>
+          {subtitle && <p className="mt-2 text-base text-offwhite/90 sm:text-lg">{subtitle}</p>}
           <div className="mt-5">{children}</div>
         </div>
       </div>
