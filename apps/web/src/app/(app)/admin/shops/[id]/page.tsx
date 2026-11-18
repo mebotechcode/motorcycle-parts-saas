@@ -422,7 +422,7 @@ export default function AdminShopPage() {
                 onChange={(e) => setNote(e.target.value)}
                 maxLength={2000}
                 rows={3}
-                placeholder="Called owner, promised to pay Friday…"
+                placeholder="Follow-up note (not visible to the shop)…"
                 className="w-full rounded-lg border border-charcoal-3 bg-charcoal px-3 py-2 text-sm placeholder:text-muted/60 focus:border-brand focus:outline-none"
               />
               <Button type="submit" disabled={!!busy || !note.trim()}>

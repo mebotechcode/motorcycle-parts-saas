@@ -145,7 +145,7 @@ export default function BillingPage() {
       )}
       {!locked && trialEnding && (
         <Alert kind="info">
-          Your free trial ends {fmtDate(info?.trial_ends_at ?? null)} ({info?.days_left} day{info?.days_left === 1 ? '' : 's'} left). Choose a plan below to keep the till running — pay with M-Pesa in under a minute.
+          Your free trial ends {fmtDate(info?.trial_ends_at ?? null)} ({info?.days_left} day{info?.days_left === 1 ? '' : 's'} left). Choose a plan and pay with M-Pesa to continue after the trial.
         </Alert>
       )}
       {!locked && inGrace && (
@@ -215,7 +215,10 @@ export default function BillingPage() {
       </div>
 
       <p className="text-center text-xs text-muted">
-        Paying by STK Push activates automatically. Questions? WhatsApp us or call — we answer fast.
+        Payment by M-Pesa STK Push activates your plan automatically
+        {process.env.NEXT_PUBLIC_SUPPORT_EMAIL
+          ? `. For billing questions, email ${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}.`
+          : '. For billing questions, contact NafPOS support.'}
       </p>
     </div>
   )

@@ -89,7 +89,7 @@ export default function DashboardPage() {
       {canSeeBilling && sub?.status === 'trialing' && (
         <Link href="/billing">
           <Card className="border-brand/40 hover:border-brand/60">
-            <div className="text-sm text-muted">Free trial · tap to pay and keep the till running</div>
+            <div className="text-sm text-muted">Free trial · open billing to subscribe</div>
             <div className="font-display text-2xl font-bold uppercase text-brand">
               {daysLeft} day{daysLeft === 1 ? '' : 's'} left
             </div>
@@ -128,7 +128,7 @@ export default function DashboardPage() {
           <Card className="hover:border-brand/60">
             <div className="text-sm text-muted">Profit today (after expenses)</div>
             <div className={`font-display text-5xl font-bold ${Number(profit.net_profit) >= 0 ? 'text-emerald-300' : 'text-red-300'}`}>KES {money(profit.net_profit)}</div>
-            <div className="text-sm text-muted">Gross profit KES {money(profit.gross_profit)} · expenses KES {money(profit.expenses)} · tap for reports</div>
+            <div className="text-sm text-muted">Gross profit KES {money(profit.gross_profit)} · expenses KES {money(profit.expenses)} · view reports</div>
           </Card>
         </Link>
       )}
@@ -158,7 +158,7 @@ export default function DashboardPage() {
           <Card className="hover:border-brand/60">
             <div className="text-sm text-muted">Customers owe you</div>
             <div className="font-display text-4xl font-bold">KES {money(owed.total_owed)}</div>
-            <div className="text-sm text-muted">{owed.owing_count} customer{owed.owing_count === 1 ? '' : 's'} · tap to send reminders</div>
+            <div className="text-sm text-muted">{owed.owing_count} customer{owed.owing_count === 1 ? '' : 's'} · send reminders</div>
           </Card>
         </Link>
       )}
@@ -188,11 +188,13 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {canSeeBilling && (
+      {canSeeBilling && !(etims && (etims.queued > 0 || etims.failed > 0)) && (
         <Card>
-          <h2 className="text-xl font-bold">Coming next</h2>
+          <h2 className="text-xl font-bold">KRA eTIMS</h2>
           <p className="mt-1 text-sm text-muted">
-            KRA eTIMS receipt signing goes fully live once KRA onboards your devices — queued receipts send automatically when you are online. Need help? WhatsApp support.
+            Receipts are queued automatically and transmit when this device is online. Live signing with KRA begins
+            after they onboard your OSCU/VSCU. Until then, NafPOS still issues a control-unit number so staff can
+            complete the receipt flow.
           </p>
         </Card>
       )}

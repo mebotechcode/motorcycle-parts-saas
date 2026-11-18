@@ -160,7 +160,7 @@ export default function AdminActivityPage() {
                 {rows && rows.length === 0 && (
                   <tr>
                     <td colSpan={6} className="py-6 text-center text-muted">
-                      {q ? 'No logins match this search.' : 'No logins recorded yet. Sign in once after applying migration 31.'}
+                      {q ? 'No logins match this search.' : 'No logins recorded yet.'}
                     </td>
                   </tr>
                 )}
