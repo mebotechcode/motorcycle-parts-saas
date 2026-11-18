@@ -22,6 +22,7 @@ Type `Y`. This sends migrations `21` to `26`:
 | `20261029000027_import_kenya.sql` | CSV/Excel import also carries shelf location, aisle/rack/bin, slang aliases and KRA HS/eTIMS codes |
 | `20261117000028_subscription_invoice_self_heal.sql` | `create_subscription_invoice` self-heals a missing subscriptions row (expired Starter) instead of returning `invoice_id: null` |
 | `20261117000029_admin_dashboard.sql` | Super-admin console: `admin_audit_log` + `admin_overview` / `admin_tenants` / `admin_recent_actions` / `admin_set_tenant_status` / `admin_extend_trial` / `admin_set_plan` (all re-check `private.is_platform_admin()`, all audited) |
+| `20261118000030_admin_v2.sql` | Super-admin v2: paginated `admin_tenants(q,status,page,page_size)` (25/page, search, All/Active/Suspended/Needs attention); `admin_shop` detail (staff, invoices, health, notes); `admin_mark_invoice_paid` / `admin_void_invoice` / `admin_add_note`; `admin_support_notes` table |
 
 Then in the SQL Editor run: `notify pgrst, 'reload schema';`
 
