@@ -80,7 +80,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!claims.tenant_id && claims.platform_admin) {
     return (
       <div className="min-h-screen">
-        <header className="sticky top-0 z-30 border-b border-charcoal-3 bg-charcoal">
+        <header className="fixed inset-x-0 top-0 z-50 border-b border-charcoal-3 bg-charcoal">
           <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
             <Link href="/admin" className="flex min-w-0 items-center gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -114,7 +114,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </header>
-        <main className="mx-auto max-w-6xl px-4 py-5">{children}</main>
+        <main className="mx-auto max-w-6xl px-4 py-5 pt-24">{children}</main>
       </div>
     )
   }
@@ -149,7 +149,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       {/* ---------- top bar ---------- */}
-      <header className="print:hidden sticky top-0 z-30 border-b border-charcoal-3 bg-charcoal">
+      <header className="print:hidden fixed inset-x-0 top-0 z-50 border-b border-charcoal-3 bg-charcoal">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           {/* hamburger: phones and small tablets only */}
           <button
@@ -268,7 +268,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 print:max-w-none print:p-0">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-6 pt-24 print:max-w-none print:p-0">{children}</main>
     </div>
   )
 }
