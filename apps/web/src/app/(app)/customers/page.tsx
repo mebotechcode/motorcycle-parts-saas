@@ -9,6 +9,7 @@ import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { TYPE_LABEL, type COverview } from '@/lib/customers'
 import { t, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 const PAGE = 25
 
@@ -58,7 +59,7 @@ export default function CustomersPage() {
     else query = query.order('name')
     const { data, count, error } = await query.range(page * PAGE, page * PAGE + PAGE - 1)
     if (error) {
-      setError(error.message)
+      setError(friendlyError(error))
       setRows([])
       return
     }
@@ -91,7 +92,7 @@ export default function CustomersPage() {
       .select('id')
       .single()
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     router.push(`/customers/${(data as any).id}`)
   }
 

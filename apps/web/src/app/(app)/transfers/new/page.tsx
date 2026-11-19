@@ -8,6 +8,7 @@ import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Select } from '@/components/ui'
 import { canEditInventory, qty } from '@/lib/inventory'
 import { t, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 type Branch = { id: string; name: string }
 type Found = { id: string; name: string; sku: string; unit: string }
@@ -110,7 +111,7 @@ export default function NewTransferPage() {
       p_note: note || null,
     })
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     router.push(`/transfers/${data}`)
   }
 

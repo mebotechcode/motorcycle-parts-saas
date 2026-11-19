@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Alert, Button, Field, Select } from '@/components/ui'
 import { money, type Customer } from '@/lib/pos'
+import { friendlyError } from '@/lib/errors'
 
 // Works from the customers saved on the device (so it also works offline).
 export default function CustomerPicker({
@@ -59,7 +60,7 @@ export default function CustomerPicker({
       .select('id,name,phone,credit_limit,price_tier,customer_type')
       .single()
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     onChange(data as Customer)
     onCreated?.()
     setAdding(false)

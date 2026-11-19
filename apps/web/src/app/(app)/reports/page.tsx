@@ -8,6 +8,7 @@ import { money } from '@/lib/pos'
 import { qty as fmtQty } from '@/lib/inventory'
 import { PRESET_LABEL, downloadCSV, periodRange, type Preset } from '@/lib/reports'
 import { t as tr, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 import { VBars, HBars } from '@/components/Charts'
 
 type Tab = 'overview' | 'products' | 'stock' | 'team'
@@ -90,7 +91,7 @@ export default function ReportsPage() {
         setBranchRows(per.map((r, i) => ({ id: branches[i].id, name: branches[i].name, ...(r.data as any) })))
       }
     } catch (e: any) {
-      setError(e.message ?? 'Could not load the report')
+      setError(friendlyError(e))
     }
     setLoading(false)
   }, [manager, tab, from, to, b, order, slowDays, branches])

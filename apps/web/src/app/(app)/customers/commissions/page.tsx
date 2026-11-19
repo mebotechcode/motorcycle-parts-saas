@@ -8,6 +8,7 @@ import { Alert, Button, Card, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { waNumber } from '@/lib/pos'
 import { t, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 type Row = {
   mechanic_id: string
@@ -32,7 +33,7 @@ export default function CommissionsPage() {
   const load = useCallback(async () => {
     setError('')
     const { data, error } = await supabase.from('mechanic_commission_summary').select('*').order('owed_total', { ascending: false })
-    if (error) setError(error.message)
+    if (error) setError(friendlyError(error))
     setRows((data as Row[]) ?? [])
   }, [])
 
@@ -53,7 +54,7 @@ export default function CommissionsPage() {
     setBusy(row.mechanic_id)
     const { data, error } = await supabase.rpc('settle_mechanic_commissions', { p_mechanic_id: row.mechanic_id })
     setBusy('')
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     const d: any = data ?? {}
     setInfo(`Settled ${d.settled_count ?? 0} referral${(d.settled_count ?? 0) === 1 ? '' : 's'} — KES ${money(d.settled_total ?? 0)} paid to ${row.name}.`)
     load()

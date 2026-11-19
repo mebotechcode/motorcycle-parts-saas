@@ -24,6 +24,7 @@ import {
 import { t as tr, useLang } from '@/lib/i18n'
 import { binLabel, searchProducts } from '@/lib/search'
 import { sendStkPush } from '@/lib/mpesa'
+import { friendlyError } from '@/lib/errors'
 import CameraScanner from '@/components/CameraScanner'
 
 export default function SellPage() {
@@ -326,7 +327,7 @@ export default function SellPage() {
           await saveOffline(payload) // the connection dropped: keep the sale on this device
           return
         }
-        setError(error.message)
+        setError(friendlyError(error))
         return
       }
       const id = (data as any).sale_id
@@ -539,7 +540,7 @@ export default function SellPage() {
                       if (r.ok) {
                         setMpesa(String(t.total))
                         setStkInfo(tr('stkSent', lang))
-                      } else setError(r.error ?? 'STK Push failed')
+                      } else setError(friendlyError(r.error ?? 'M-Pesa did not accept the request. Try again.'))
                     }}
                   >
                     {stkBusy ? 'Sending...' : tr('sendStk', lang)}

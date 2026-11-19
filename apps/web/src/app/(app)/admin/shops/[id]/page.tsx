@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
+import { friendlyError } from '@/lib/errors'
 
 const PLANS = ['starter', 'growth', 'chain'] as const
 
@@ -39,7 +40,7 @@ export default function AdminShopPage() {
     if (!isAdmin || !id) return
     setError('')
     const { data, error } = await supabase.rpc('admin_shop', { p_tenant_id: id })
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setData(data)
   }, [isAdmin, id])
 
@@ -57,7 +58,7 @@ export default function AdminShopPage() {
     const { error } = await supabase.rpc(action, payload)
     setBusy('')
     if (error) {
-      setError(error.message)
+      setError(friendlyError(error))
       return false
     }
     setInfo(msg)

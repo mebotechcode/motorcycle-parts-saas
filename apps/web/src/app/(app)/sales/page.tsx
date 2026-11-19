@@ -7,6 +7,7 @@ import { useSession } from '@/lib/session'
 import { Alert, Card, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { t as tr, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 type Sale = {
   id: string
@@ -76,7 +77,7 @@ export default function SalesPage() {
     if (s) q = q.ilike('receipt_no', `%${s}%`)
     if (review) q = q.neq('offline_flags', '{}').is('reviewed_at', null)
     const [res, summary] = await Promise.all([q, supabase.rpc('sales_summary', { p_from: from.toISOString(), p_to: to.toISOString() })])
-    if (res.error) setError(res.error.message)
+    if (res.error) setError(friendlyError(res.error))
     const list = (res.data as Sale[]) ?? []
     setRows(list)
     setSum((summary.data as any) ?? null)

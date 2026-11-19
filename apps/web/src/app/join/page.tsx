@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { decodeClaims, useSession } from '@/lib/session'
+import { friendlyError } from '@/lib/errors'
 import { Alert, AuthShell, Spinner } from '@/components/ui'
 
 export default function JoinPage() {
@@ -29,7 +30,7 @@ export default function JoinPage() {
     ;(async () => {
       const { error } = await supabase.rpc('accept_invite', { p_token: token })
       if (error) {
-        setError(error.message)
+        setError(friendlyError(error))
         return
       }
       const fresh = await refresh()

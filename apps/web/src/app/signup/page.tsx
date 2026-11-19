@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Alert, AuthShell, Button, Field } from '@/components/ui'
+import { friendlyError } from '@/lib/errors'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -26,7 +27,7 @@ export default function SignupPage() {
       options: { data: { full_name: fullName.trim() } },
     })
     if (error) {
-      setError(error.message)
+      setError(friendlyError(error))
       setBusy(false)
       return
     }

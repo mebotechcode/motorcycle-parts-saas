@@ -9,6 +9,7 @@ import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import { uuid } from '@/lib/inventory'
 import { money, waNumber } from '@/lib/pos'
 import { LEDGER_LABEL, TYPE_LABEL, daysSince, termsLabel, type COverview } from '@/lib/customers'
+import { friendlyError } from '@/lib/errors'
 
 type Entry = { id: string; entry_type: string; amount: number; note: string | null; sale_id: string | null; created_at: string }
 
@@ -118,7 +119,7 @@ export default function CustomerPage() {
       },
     })
     setBusy('')
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setLastPayment(data)
     setAmount('')
     setCode('')
@@ -137,7 +138,7 @@ export default function CustomerPage() {
     if (manager) patch.credit_limit = Number(f.credit_limit || 0)
     const { error } = await supabase.from('customers').update(patch).eq('id', id)
     setBusy('')
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setInfo('Saved.')
     await load()
   }
@@ -154,7 +155,7 @@ export default function CustomerPage() {
         ? await supabase.rpc('add_opening_balance', { p_customer_id: id, p_amount: n, p_note: tReason || null })
         : await supabase.rpc('adjust_customer_balance', { p_customer_id: id, p_amount: tool === 'writeoff' ? -n : n, p_reason: tReason })
     setBusy('')
-    if (res.error) return setError(res.error.message)
+    if (res.error) return setError(friendlyError(res.error))
     setInfo(`Done. The balance is now KES ${money(res.data as number)}.`)
     setTool('')
     setTAmount('')
@@ -165,7 +166,7 @@ export default function CustomerPage() {
   async function toggleActive() {
     if (c!.is_active && balance !== 0 && !window.confirm('This customer still has a balance. Hide them anyway?')) return
     const { error } = await supabase.from('customers').update({ is_active: !c!.is_active }).eq('id', id)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     await load()
   }
 

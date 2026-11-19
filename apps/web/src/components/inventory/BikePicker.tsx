@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { friendlyError } from '@/lib/errors'
 import { Alert, Button, Field, Select } from '@/components/ui'
 
 type Make = { id: string; name: string }
@@ -49,7 +50,7 @@ export default function BikePicker({ value, onChange }: { value: string[]; onCha
       if (existing) mk = existing.id
       else {
         const { data, error } = await supabase.from('bike_makes').insert({ name: typed }).select('id,name').single()
-        if (error) return setError(error.message)
+        if (error) return setError(friendlyError(error))
         mk = (data as Make).id
         setMakes((p) => [...p, data as Make])
       }
@@ -61,7 +62,7 @@ export default function BikePicker({ value, onChange }: { value: string[]; onCha
       .insert({ make_id: mk, name: newModel.trim(), engine_cc: newCc ? Number(newCc) : null })
       .select('id,make_id,name,engine_cc')
       .single()
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setModels((p) => [...p, data as Model])
     setMakeId(mk)
     onChange([...value, (data as Model).id])

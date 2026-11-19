@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Spinner } from '@/components/ui'
 import { canEditInventory, qty } from '@/lib/inventory'
+import { friendlyError } from '@/lib/errors'
 
 type Item = { id: string; product_id: string; qty_sent: number; qty_received: number; discrepancy_note: string | null }
 
@@ -78,7 +79,7 @@ export default function TransferPage() {
       p_received: items.map((it) => ({ item_id: it.id, qty: Number(recv[it.id]), note: (notes[it.id] ?? '').trim() || null })),
     })
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     await load()
   }
 
@@ -88,7 +89,7 @@ export default function TransferPage() {
     setBusy(true)
     const { error } = await supabase.rpc('cancel_transfer', { p_transfer_id: id })
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     await load()
   }
 

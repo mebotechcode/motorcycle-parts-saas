@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { ROLE_LABEL, useSession } from '@/lib/session'
 import { t, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 
 type Branch = { id: string; name: string; code: string }
@@ -71,9 +72,9 @@ export default function StaffPage() {
   async function readFnError(err: any): Promise<string> {
     try {
       const j = await err.context.json()
-      return j.error ?? err.message
+      return friendlyError(j.error ?? err.message)
     } catch {
-      return err.message
+      return friendlyError(err.message)
     }
   }
 
@@ -96,7 +97,7 @@ export default function StaffPage() {
           p_branch_ids: branchIds,
         })
         if (error) {
-          setError(error.message)
+          setError(friendlyError(error))
           return false
         }
         setLink(inviteUrl(data as string))
@@ -137,7 +138,7 @@ export default function StaffPage() {
     setError('')
     setInfo('')
     const { error } = await supabase.rpc('update_staff', { p_member_id: memberId, ...changes })
-    if (error) setError(error.message)
+    if (error) setError(friendlyError(error))
     else {
       setInfo('Saved. The change reaches that person the next time they sign in or their session refreshes (within about an hour).')
       await load()

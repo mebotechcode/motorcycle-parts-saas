@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Select } from '@/components/ui'
 import { MOVEMENT_LABEL, qty, uuid } from '@/lib/inventory'
+import { friendlyError } from '@/lib/errors'
 
 type Branch = { id: string; name: string; code: string }
 type Level = { branch_id: string; quantity: number }
@@ -109,7 +110,7 @@ export default function StockPanel({ productId, unit, onChanged }: { productId: 
     })
     setBusy(false)
     if (error) {
-      setError(error.message.includes('row-level security') ? 'You are not allowed to change stock in that branch.' : error.message)
+      setError(error.message.includes('row-level security') ? 'You are not allowed to change stock in that branch.' : friendlyError(error))
       return
     }
     setNotice('Stock updated.')

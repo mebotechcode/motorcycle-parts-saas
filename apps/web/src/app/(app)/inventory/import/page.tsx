@@ -7,6 +7,7 @@ import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Select } from '@/components/ui'
 import { FIELDS, TEMPLATE_CSV, buildRows, parseCSV, type ImportRow } from '@/lib/csv'
 import { canEditInventory } from '@/lib/inventory'
+import { friendlyError } from '@/lib/errors'
 
 const BATCH = 100
 
@@ -93,7 +94,7 @@ export default function ImportPage() {
         p_update_existing: update,
       })
       if (error) {
-        setError(error.message)
+        setError(friendlyError(error))
         setBusy(false)
         setResult(total)
         return

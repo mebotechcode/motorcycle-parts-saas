@@ -8,6 +8,7 @@ import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { PRESET_LABEL, periodRange, todayEAT, type Preset } from '@/lib/reports'
 import { t, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 type Exp = { id: string; incurred_on: string; amount: number; method: string; paid_to: string | null; description: string | null; reference: string | null; category_id: string | null; branch_id: string; created_by: string | null }
 
@@ -45,7 +46,7 @@ export default function ExpensesPage() {
       supabase.from('expense_categories').select('id,name').order('name'),
       supabase.from('branches').select('id,name').eq('is_active', true).order('name'),
     ])
-    if (e.error) setError(e.error.message)
+    if (e.error) setError(friendlyError(e.error))
     const list = ((e.data as any[]) ?? []).map((x) => ({ ...x, amount: Number(x.amount) })) as Exp[]
     setRows(list)
     setCats((c.data as any[]) ?? [])
@@ -79,7 +80,7 @@ export default function ExpensesPage() {
     const name = newCat.trim()
     if (!name) return
     const { data, error } = await supabase.from('expense_categories').insert({ name }).select('id,name').single()
-    if (error) return setError(error.message.includes('duplicate') ? 'That category already exists' : error.message)
+    if (error) return setError(error.message.includes('duplicate') ? 'That category already exists' : friendlyError(error))
     setCats((p) => [...p, data as any])
     setCatId((data as any).id)
     setNewCat('')
@@ -95,7 +96,7 @@ export default function ExpensesPage() {
       p_data: { branch_id: branchId, category_id: catId || null, amount: Number(amount), method, paid_to: paidTo, description: desc, reference: ref, incurred_on: manager ? date : undefined },
     })
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setInfo(method === 'cash' ? 'Saved. This cash was taken out of your till.' : 'Saved.')
     setAmount('')
     setPaidTo('')
@@ -108,7 +109,7 @@ export default function ExpensesPage() {
     const reason = window.prompt(`Why delete this expense (KES ${money(r.amount)})?`)
     if (!reason) return
     const { error } = await supabase.rpc('delete_expense', { p_id: r.id, p_reason: reason })
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     await load()
   }
 

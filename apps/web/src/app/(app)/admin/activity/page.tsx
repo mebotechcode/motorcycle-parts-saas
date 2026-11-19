@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Card, Spinner } from '@/components/ui'
 import { deviceFromUa, keWhen } from '@/lib/admin'
+import { friendlyError } from '@/lib/errors'
 
 const PAGE_SIZE = 25
 
@@ -60,7 +61,7 @@ export default function AdminActivityPage() {
       p_page_size: PAGE_SIZE,
     })
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setError('')
     setRows((data as any)?.rows ?? [])
     setTotal(Number((data as any)?.total ?? 0))
@@ -69,7 +70,7 @@ export default function AdminActivityPage() {
   const loadSessions = useCallback(async () => {
     if (!isAdmin) return
     const { data, error } = await supabase.rpc('admin_active_sessions')
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setSessions((data as any[]) ?? [])
   }, [isAdmin])
 

@@ -1,3 +1,5 @@
+import { friendlyError } from './errors'
+
 // M-Pesa helpers shared by POS, debt repayment and billing.
 // Manual codes are validated client-side (server enforces uniqueness
 // with payments_mpesa_reference_unique) and flagged unverified until
@@ -46,7 +48,7 @@ export async function sendStkPush(args: {
     try {
       msg = (await (error as any).context.json()).error ?? msg
     } catch {}
-    return { ok: false, error: msg }
+    return { ok: false, error: friendlyError(msg) }
   }
   if (!data?.ok) return { ok: false, error: data?.error ?? 'M-Pesa did not accept the request.' }
   return { ok: true, checkout_request_id: data.checkout_request_id, customer_message: data.customer_message }

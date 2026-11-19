@@ -8,6 +8,7 @@ import { Card } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { todayEAT } from '@/lib/reports'
 import { t, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 type Sub = { status: string; trial_ends_at: string | null; plans: { name: string } | null } | null
 
@@ -40,7 +41,7 @@ export default function DashboardPage() {
       try {
         msg = (await (error as any).context.json()).error ?? msg
       } catch {}
-      setEtimsMessage(msg)
+      setEtimsMessage(friendlyError(msg))
     } else {
       const d: any = data ?? {}
       setEtimsMessage(d.message ?? `Done. ${d.submitted ?? 0} sent, ${d.failed ?? 0} still failing.`)
