@@ -7,6 +7,7 @@ import { useSession } from '@/lib/session'
 import { Alert, Card, Select, Spinner } from '@/components/ui'
 import { canEditInventory } from '@/lib/inventory'
 import { t as tr, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 type T = {
   id: string
@@ -45,7 +46,7 @@ export default function TransfersPage() {
         .order('created_at', { ascending: false })
         .limit(50),
     ])
-    if (t.error) setError(t.error.message)
+    if (t.error) setError(friendlyError(t.error))
     const map: Record<string, string> = {}
     ;((b.data as any[]) ?? []).forEach((x) => (map[x.id] = x.name))
     setNames(map)

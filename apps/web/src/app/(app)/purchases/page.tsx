@@ -9,6 +9,7 @@ import { money } from '@/lib/pos'
 import { canEditInventory } from '@/lib/inventory'
 import { PO_STATUS } from '@/lib/purchasing'
 import { t, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 export default function PurchasesPage() {
   const { claims } = useSession()
@@ -36,11 +37,11 @@ export default function PurchasesPage() {
       if (status === 'open') q = q.in('status', ['draft', 'ordered', 'partially_received'])
       else if (status !== 'all') q = q.eq('status', status)
       const { data, error } = await q
-      if (error) setError(error.message)
+      if (error) setError(friendlyError(error))
       setOrders((data as any[]) ?? [])
     } else {
       const { data, error } = await supabase.from('goods_receipts').select('id,supplier_id,supplier_invoice_no,received_at,total,amount_paid').order('received_at', { ascending: false }).limit(60)
-      if (error) setError(error.message)
+      if (error) setError(friendlyError(error))
       setReceipts((data as any[]) ?? [])
     }
   }, [tab, status])

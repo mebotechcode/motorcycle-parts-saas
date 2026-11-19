@@ -9,6 +9,7 @@ import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import { uuid } from '@/lib/inventory'
 import { money, waNumber } from '@/lib/pos'
 import { SUPPLIER_LEDGER_LABEL, type Supplier } from '@/lib/purchasing'
+import { friendlyError } from '@/lib/errors'
 import ProductPicker from '@/components/purchasing/ProductPicker'
 
 type Entry = { id: string; entry_type: string; amount: number; note: string | null; receipt_id: string | null; created_at: string }
@@ -100,7 +101,7 @@ export default function SupplierPage() {
       .update({ name: f.name.trim(), contact_person: f.contact_person.trim() || null, phone: f.phone.trim() || null, email: f.email.trim() || null, address: f.address.trim() || null, payment_terms_days: Number(f.terms || 0), notes: f.notes.trim() || null })
       .eq('id', id)
     setBusy('')
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setInfo('Saved.')
     await load()
   }
@@ -113,7 +114,7 @@ export default function SupplierPage() {
     setBusy('pay')
     const { data, error } = await supabase.rpc('pay_supplier', { p_data: { supplier_id: id, branch_id: branchId || null, amount: Number(amount), method, reference: ref || null, note: note || null, client_uuid: payKey, from_till: method === 'cash' && fromTill && !!branchId } })
     setBusy('')
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     const b = Number((data as any).balance_after)
     setInfo(`Payment recorded. ${b > 0 ? `You still owe KES ${money(b)}.` : b < 0 ? `The supplier now owes you KES ${money(-b)}.` : 'Fully paid up.'}`)
     setAmount('')
@@ -134,7 +135,7 @@ export default function SupplierPage() {
       p_data: { supplier_id: id, branch_id: branchId, reason: retReason, items: retLines.map((l) => ({ product_id: l.id, qty: Number(l.qty), unit_cost: Number(l.cost || 0) })) },
     })
     setBusy('')
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setInfo(`Returned. Credit from the supplier: KES ${money((data as any).credit)}.`)
     setRetLines([])
     setRetReason('')
@@ -151,7 +152,7 @@ export default function SupplierPage() {
     setBusy('tool')
     const { data, error } = await supabase.rpc('adjust_supplier_balance', { p_supplier_id: id, p_amount: tool === 'opening' ? n : n * Number(tSign), p_reason: tReason || null, p_opening: tool === 'opening' })
     setBusy('')
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setInfo(`Done. You now owe KES ${money(data as number)}.`)
     setTool('')
     setTAmount('')
@@ -161,7 +162,7 @@ export default function SupplierPage() {
 
   async function toggleActive() {
     const { error } = await supabase.from('suppliers').update({ is_active: !s!.is_active }).eq('id', id)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     await load()
   }
 

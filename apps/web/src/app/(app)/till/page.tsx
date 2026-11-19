@@ -7,6 +7,7 @@ import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { t, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 type Sess = {
   id: string
@@ -95,7 +96,7 @@ export default function TillPage() {
       if (error) {
         // Fallback for older DBs without the blind function
         supabase.rpc('session_totals', { p_session_id: selected }).then((r2) => {
-          if (r2.error) setError(r2.error.message)
+          if (r2.error) setError(friendlyError(r2.error))
           else setTotals(r2.data)
         })
       } else setTotals(data)
@@ -115,7 +116,7 @@ export default function TillPage() {
     setBusy(true)
     const { data, error } = await supabase.rpc('open_cash_session', { p_branch_id: branchId, p_float: Number(float || 0) })
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setFloat('')
     setSelected(data as string)
     await load()
@@ -135,7 +136,7 @@ export default function TillPage() {
       p_notes: notes || null,
     })
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     const v = Number((data as any).cash_variance)
     const mv = (data as any).mpesa_variance
     setInfo(
@@ -150,7 +151,7 @@ export default function TillPage() {
 
   async function verifyPayment(id: string) {
     const { error } = await supabase.rpc('verify_mpesa_payment', { p_payment_id: id, p_verified: true })
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setUnverified((p) => p.filter((x) => x.id !== id))
   }
 

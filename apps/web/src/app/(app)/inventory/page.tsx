@@ -7,6 +7,7 @@ import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Select, Spinner } from '@/components/ui'
 import { QUALITY, canEditInventory, kes, qty } from '@/lib/inventory'
 import { t, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 const PAGE = 25
 
@@ -95,7 +96,7 @@ export default function InventoryPage() {
 
     const { data, count, error } = await query.order('name').range(page * PAGE, page * PAGE + PAGE - 1)
     if (error) {
-      setError(error.message)
+      setError(friendlyError(error))
       setRows([])
       return
     }

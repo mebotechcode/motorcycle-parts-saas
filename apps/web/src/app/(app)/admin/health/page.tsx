@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Card, Spinner } from '@/components/ui'
 import { keDate } from '@/lib/admin'
+import { friendlyError } from '@/lib/errors'
 
 type ShopHit = { id: string; name: string; slug?: string; count?: number; trial_ends_at?: string; grace_ends_at?: string }
 
@@ -42,7 +43,7 @@ export default function AdminHealthPage() {
   const load = useCallback(async () => {
     if (!isAdmin) return
     const { data, error } = await supabase.rpc('admin_health')
-    if (error) setError(error.message)
+    if (error) setError(friendlyError(error))
     else setData(data)
   }, [isAdmin])
 

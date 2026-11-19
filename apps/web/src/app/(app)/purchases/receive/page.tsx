@@ -11,6 +11,7 @@ import { uuid } from '@/lib/inventory'
 import { lineSum, type PLine } from '@/lib/purchasing'
 import ProductPicker from '@/components/purchasing/ProductPicker'
 import { t, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 export default function ReceivePage() {
   const router = useRouter()
@@ -144,7 +145,7 @@ export default function ReceivePage() {
       },
     })
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     router.push(`/purchases/receipts/${(data as any).receipt_id}`)
   }
 

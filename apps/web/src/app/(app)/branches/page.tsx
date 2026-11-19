@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Spinner } from '@/components/ui'
 import { t, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 type Branch = { id: string; name: string; code: string; town: string | null; phone: string | null; is_active: boolean }
 
@@ -20,7 +21,7 @@ export default function BranchesPage() {
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.from('branches').select('id,name,code,town,phone,is_active').order('name')
-    if (error) setError(error.message)
+    if (error) setError(friendlyError(error))
     setBranches((data as Branch[]) ?? [])
   }, [])
 
@@ -33,7 +34,7 @@ export default function BranchesPage() {
     setBusy(true)
     setError('')
     const { error } = await supabase.from('branches').insert({ name: name.trim(), code: code.trim().toUpperCase() })
-    if (error) setError(error.message)
+    if (error) setError(friendlyError(error))
     else {
       setName('')
       setCode('')

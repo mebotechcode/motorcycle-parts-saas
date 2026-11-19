@@ -8,6 +8,7 @@ import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import Receipt from '@/components/pos/Receipt'
 import { receiptText, thermalReceiptText, waNumber } from '@/lib/pos'
+import { friendlyError } from '@/lib/errors'
 
 export default function SalePage() {
   const { id } = useParams<{ id: string }>()
@@ -90,7 +91,7 @@ export default function SalePage() {
     setBusy(true)
     const { error } = await supabase.rpc('mark_sale_reviewed', { p_sale_id: id })
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setInfo('Marked as checked.')
     await load()
   }
@@ -101,7 +102,7 @@ export default function SalePage() {
     setBusy(true)
     const { error } = await supabase.rpc('void_sale', { p_sale_id: id, p_reason: reason })
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setPanel('')
     setReason('')
     setInfo('Sale cancelled. The items went back into stock.')
@@ -124,7 +125,7 @@ export default function SalePage() {
       p_return_type: returnType,
     })
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setPanel('')
     setReason('')
     setQtys({})

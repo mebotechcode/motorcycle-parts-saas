@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Field, Select } from '@/components/ui'
 import { QUALITY, TAX, UNITS, kes, num } from '@/lib/inventory'
+import { friendlyError } from '@/lib/errors'
 import BikePicker from './BikePicker'
 import BarcodeInput from './BarcodeInput'
 
@@ -87,7 +88,7 @@ export default function ProductForm({ product, costs, barcodes = [], modelIds = 
     const name = newCat.trim()
     if (!name) return
     const { data, error } = await supabase.from('product_categories').insert({ name }).select('id,name').single()
-    if (error) return setError(error.message.includes('duplicate') ? 'That category already exists' : error.message)
+    if (error) return setError(error.message.includes('duplicate') ? 'That category already exists' : friendlyError(error))
     setCategories((p) => [...p, data as Opt])
     setF({ ...f, category_id: (data as Opt).id })
     setNewCat('')
@@ -98,7 +99,7 @@ export default function ProductForm({ product, costs, barcodes = [], modelIds = 
     const name = newBrand.trim()
     if (!name) return
     const { data, error } = await supabase.from('brands').insert({ name }).select('id,name').single()
-    if (error) return setError(error.message.includes('duplicate') ? 'That brand already exists' : error.message)
+    if (error) return setError(error.message.includes('duplicate') ? 'That brand already exists' : friendlyError(error))
     setBrands((p) => [...p, data as Opt])
     setF({ ...f, brand_id: (data as Opt).id })
     setNewBrand('')
@@ -151,7 +152,7 @@ export default function ProductForm({ product, costs, barcodes = [], modelIds = 
     const { data, error } = await supabase.rpc('save_product', { p_id: product?.id ?? null, p_data: payload })
     setBusy(false)
     if (error) {
-      setError(error.message)
+      setError(friendlyError(error))
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }

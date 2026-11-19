@@ -10,6 +10,7 @@ import { money } from '@/lib/pos'
 import { canEditInventory } from '@/lib/inventory'
 import type { Supplier } from '@/lib/purchasing'
 import { t, useLang } from '@/lib/i18n'
+import { friendlyError } from '@/lib/errors'
 
 export default function SuppliersPage() {
   const router = useRouter()
@@ -32,7 +33,7 @@ export default function SuppliersPage() {
     const s = text.trim().replace(/[,()%*\\]/g, ' ').trim()
     if (s) q = q.or(`name.ilike.%${s}%,phone.ilike.%${s}%,contact_person.ilike.%${s}%`)
     const { data, error } = await q
-    if (error) setError(error.message)
+    if (error) setError(friendlyError(error))
     setRows((data as Supplier[]) ?? [])
   }, [text])
 
@@ -62,7 +63,7 @@ export default function SuppliersPage() {
       .select('id')
       .single()
     setBusy(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     router.push(`/suppliers/${(data as any).id}`)
   }
 

@@ -9,6 +9,7 @@ import { Alert, Button, Card, Field, Select, Spinner } from '@/components/ui'
 import { money, waNumber } from '@/lib/pos'
 import { qty as fmtQty } from '@/lib/inventory'
 import { PO_STATUS, lineSum, type PLine } from '@/lib/purchasing'
+import { friendlyError } from '@/lib/errors'
 import ProductPicker from '@/components/purchasing/ProductPicker'
 
 export default function OrderPage() {
@@ -115,7 +116,7 @@ export default function OrderPage() {
       p_data: { supplier_id: supplierId, branch_id: branchId, expected_date: expected || null, notes, status, items: lines.map((l) => ({ product_id: l.product_id, qty: Number(l.qty), unit_cost: Number(l.cost || 0) })) },
     })
     setBusy('')
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     if (isNew) router.replace(`/purchases/order/${data}`)
     else {
       setInfo(status === 'ordered' ? 'Saved and marked as ordered.' : 'Saved as a draft.')
@@ -128,7 +129,7 @@ export default function OrderPage() {
     setBusy('cancel')
     const { error } = await supabase.rpc('cancel_purchase_order', { p_id: id })
     setBusy('')
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     await load()
   }
 

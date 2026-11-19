@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Alert, Card, Select, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
+import { friendlyError } from '@/lib/errors'
 
 const PLANS = ['starter', 'growth', 'chain'] as const
 const FILTERS: { id: string; label: string }[] = [
@@ -58,7 +59,7 @@ export default function AdminPage() {
       supabase.rpc('admin_overview'),
       supabase.rpc('admin_recent_actions', { p_limit: 15 }),
     ])
-    if (ov.error) setError(ov.error.message)
+    if (ov.error) setError(friendlyError(ov.error))
     else setOverview(ov.data)
     setActions((ac.data as any[]) ?? [])
   }, [isAdmin])
@@ -73,7 +74,7 @@ export default function AdminPage() {
       p_page_size: PAGE_SIZE,
     })
     setListLoading(false)
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     const payload = data as { total?: number; rows?: any[] } | any[]
     // Paginated v2 returns {total, rows}; old table RPC returned an array.
     if (Array.isArray(payload)) {
@@ -101,7 +102,7 @@ export default function AdminPage() {
     setInfo('')
     const { error } = await supabase.rpc(action, payload)
     setBusy('')
-    if (error) return setError(error.message)
+    if (error) return setError(friendlyError(error))
     setInfo(msg)
     await Promise.all([loadList(), loadOverview()])
   }

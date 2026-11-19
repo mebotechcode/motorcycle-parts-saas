@@ -7,6 +7,7 @@ import { useSession } from '@/lib/session'
 import { Alert, Button, Card, Select, Spinner } from '@/components/ui'
 import { money, waNumber } from '@/lib/pos'
 import { BUCKETS, DEFAULT_REMINDER, bucketOf, daysSince, fillTemplate, itemizedReminder, type COverview, type UnpaidSale } from '@/lib/customers'
+import { friendlyError } from '@/lib/errors'
 
 export default function RemindPage() {
   const { claims } = useSession()
@@ -26,7 +27,7 @@ export default function RemindPage() {
       supabase.from('customer_overview').select('*').is('deleted_at', null).eq('is_active', true).gt('balance', 0).order('oldest_unpaid_at', { ascending: true, nullsFirst: false }).limit(300),
       supabase.rpc('sms_allowed'),
     ])
-    if (d.error) setError(d.error.message)
+    if (d.error) setError(friendlyError(d.error))
     setRows((d.data as COverview[]) ?? [])
     setAllowed((a.data as any) ?? null)
   }, [])
@@ -97,7 +98,7 @@ export default function RemindPage() {
       try {
         msg = (await (res.error as any).context.json()).error ?? msg
       } catch {}
-      return setError(msg)
+      return setError(friendlyError(msg))
     }
     setResult(res.data)
   }
