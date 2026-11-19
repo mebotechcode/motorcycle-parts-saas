@@ -7,6 +7,7 @@ import { Alert, Button, Card, Field, Spinner } from '@/components/ui'
 import { money } from '@/lib/pos'
 import { t as tr, useLang } from '@/lib/i18n'
 import { normalizeMpesaPhone, sendStkPush } from '@/lib/mpesa'
+import { friendlyError } from '@/lib/errors'
 
 type Plan = {
   id: string
@@ -76,7 +77,7 @@ export default function BillingPage() {
     const { data: inv, error: invError } = await supabase.rpc('create_subscription_invoice', { p_plan_code: plan.code })
     if (invError) {
       setBusyPlan('')
-      setMessage({ kind: 'error', text: invError.message })
+      setMessage({ kind: 'error', text: friendlyError(invError) })
       return
     }
     const invoice = inv as { invoice_id: string; amount: number }
@@ -91,7 +92,7 @@ export default function BillingPage() {
     })
     setBusyPlan('')
     if (!result.ok) {
-      setMessage({ kind: 'error', text: result.error ?? 'M-Pesa did not accept the request. Try again.' })
+      setMessage({ kind: 'error', text: friendlyError(result.error ?? 'M-Pesa did not accept the request. Try again.') })
       return
     }
     setMessage({

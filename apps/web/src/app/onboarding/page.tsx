@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { decodeClaims, useSession } from '@/lib/session'
 import { Alert, AuthShell, Button, Field, Spinner } from '@/components/ui'
+import { friendlyError } from '@/lib/errors'
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -52,7 +53,7 @@ export default function OnboardingPage() {
       p_phone: phone || null,
     })
     if (error) {
-      setError(error.message)
+      setError(friendlyError(error))
       setBusy(false)
       return
     }
