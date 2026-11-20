@@ -10,7 +10,7 @@ export default function SiteFooter() {
         <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/naf-icon.png" alt="" className="h-8 w-8 rounded-full" />
-          <span>© {year} NafPOS</span>
+          <span>© {year} Naf Motor Spares · NafPOS</span>
         </div>
         <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
           <Link href="/#features" className="hover:text-offwhite">
