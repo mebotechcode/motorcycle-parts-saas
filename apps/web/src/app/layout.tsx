@@ -14,33 +14,34 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
   title: {
-    default: 'NafPOS — Motor Spares POS for Kenya | Sell Fast, Even Offline',
-    template: '%s | NafPOS',
+    default: 'Naf Motor Spares | NafPOS — Motorcycle spare parts, Kenya',
+    template: '%s | Naf Motor Spares',
   },
   description:
-    'Offline-first point of sale, inventory, credit (deni) and M-Pesa for Kenyan motorcycle spare parts shops. Parts search by slang, boda boda debtors, KRA eTIMS receipts, EN/Kiswahili. 14-day free trial.',
+    'Naf Motor Spares (NafPOS) — motorcycle spare parts shop in Kenya, and the POS we built for stock, sales, credit (deni) and M-Pesa. Works offline. 14-day free trial.',
   applicationName: 'NafPOS',
   manifest: '/manifest.webmanifest',
   icons: { apple: '/icon-192.png' },
   keywords: [
+    'Naf Motor Spares', 'Naf motors', 'Naf motor spares Nairobi', 'NafPOS',
     'POS Kenya', 'motorcycle spare parts software', 'boda boda shop POS', 'spare parts inventory Kenya',
     'M-Pesa POS', 'eTIMS software Kenya', 'deni management', 'duka POS Nairobi', 'sehemu za pikipiki',
   ],
   openGraph: {
     type: 'website',
-    siteName: 'NafPOS',
+    siteName: 'Naf Motor Spares',
     locale: 'en_KE',
     alternateLocale: 'sw_KE',
     url: SITE,
-    title: 'NafPOS — Motor Spares POS for Kenya',
+    title: 'Naf Motor Spares | NafPOS — Motorcycle spare parts, Kenya',
     description:
-      'Stock, sales, credit (deni), M-Pesa and staff in one simple system, built for Kenyan motorcycle parts shops. Works offline. 14-day free trial.',
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'NafPOS — run your spare parts shop with confidence' }],
+      'Naf Motor Spares in Kenya. Stock, sales, credit (deni) and M-Pesa with NafPOS. Works offline.',
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Naf Motor Spares — NafPOS' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'NafPOS — Motor Spares POS for Kenya',
-    description: 'Offline-first POS, inventory, credit and M-Pesa for Kenyan motorcycle spare parts shops.',
+    title: 'Naf Motor Spares | NafPOS',
+    description: 'Motorcycle spare parts shop in Kenya, and NafPOS for stock, sales, credit and M-Pesa.',
     images: ['/og.png'],
   },
   robots: { index: true, follow: true },

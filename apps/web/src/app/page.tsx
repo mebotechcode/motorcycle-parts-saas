@@ -6,9 +6,9 @@ import SiteFooter from '@/components/landing/SiteFooter'
 import DashboardMock from '@/components/landing/DashboardMock'
 
 export const metadata: Metadata = {
-  title: 'NafPOS — Motor Spares POS for Kenya | Sell Fast, Even Offline',
+  title: 'Naf Motor Spares | NafPOS — Motorcycle spare parts, Kenya',
   description:
-    'Stock, sales, credit (deni), M-Pesa and staff in one simple system, built for boda boda spare parts shops in Kenya. Slang search, eTIMS receipts, EN/Kiswahili. Free 14-day trial.',
+    'Naf Motor Spares (also searched as Naf motors) — motorcycle spare parts in Kenya. NafPOS runs stock, sales, credit (deni) and M-Pesa, even offline. Free 14-day trial.',
   alternates: { canonical: '/' },
 }
 
@@ -89,9 +89,10 @@ export default function Landing() {
     {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: 'NafPOS',
-      url: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
-      logo: '/nafpos-logo.png',
+      name: 'Naf Motor Spares',
+      alternateName: ['NafPOS', 'Naf motors', 'Naf motorcycle spares'],
+      url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nafmotorspares.co.ke',
+      logo: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nafmotorspares.co.ke'}/nafpos-logo.png`,
       areaServed: 'KE',
     },
   ]
@@ -108,14 +109,14 @@ export default function Landing() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:grid-cols-2 md:py-20">
           <div>
             <span className="inline-block rounded-full border border-brand/40 bg-brand/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand">
-              Made for Kenyan spare parts shops
+              Naf Motor Spares · Kenya
             </span>
             <h1 className="mt-4 text-5xl font-bold leading-[0.95] sm:text-6xl lg:text-7xl">
-              <span className="text-brand">NafPOS</span> — run your motorcycle spare parts shop with confidence
+              <span className="text-brand">Naf Motor Spares</span> — run your shop with NafPOS
             </h1>
             <p className="mt-5 max-w-xl text-lg text-muted">
-              Stock, sales, credit (deni), M-Pesa and staff in one simple system, built for boda boda parts shops in
-              Kenya. Works on your phone, offline when the internet goes down.
+              We are Naf Motor Spares (people also search Naf motors). NafPOS is the system we use — stock, sales,
+              credit (deni) and M-Pesa on your phone, even when the internet goes down.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/signup" className="rounded-lg bg-brand px-6 py-3 text-base font-semibold text-charcoal hover:bg-brand-hover">
