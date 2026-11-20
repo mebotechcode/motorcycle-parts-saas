@@ -26,7 +26,10 @@ export function friendlyError(raw: unknown): string {
   if (/jwt expired|invalid jwt|session/.test(lower) && /expired|jwt/.test(lower)) {
     return 'Your session expired. Sign in again.'
   }
-  if (msg.length > 180 || /pgrst|row-level security|22p02|42703/.test(lower)) {
+  if (/row-level security|42501/.test(lower)) {
+    return 'This shop cannot save changes right now. If the free trial ended, open Billing and subscribe — or ask the operator to extend the trial.'
+  }
+  if (msg.length > 180 || /pgrst|22p02|42703/.test(lower)) {
     return 'Something went wrong. Please try again.'
   }
   return msg
@@ -36,9 +39,9 @@ function extract(raw: unknown): string {
   if (raw == null) return ''
   if (typeof raw === 'string') return raw
   if (typeof raw === 'object') {
-    const o = raw as { message?: unknown; error?: unknown }
-    if (typeof o.message === 'string') return o.message
-    if (typeof o.error === 'string') return o.error
+    const o = raw as { message?: unknown; error?: unknown; code?: unknown }
+    const parts = [o.message, o.error, o.code].filter((x) => typeof x === 'string' && x) as string[]
+    if (parts.length) return parts.join(' ')
   }
   return String(raw)
 }

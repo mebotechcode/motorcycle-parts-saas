@@ -133,6 +133,10 @@ const DICT: Record<string, Record<Lang, string>> = {
   hello: { en: 'Hello', sw: 'Habari' },
   signedInAs: { en: 'You are signed in as', sw: 'Umeingia kama' },
   freeTrial: { en: 'Free trial · open billing to subscribe', sw: 'Jaribio la bure · fungua malipo kujisajili' },
+  shopLocked: {
+    en: 'This shop is read-only. The free trial or subscription has ended — tap here to open Billing.',
+    sw: 'Duka hili ni la kusoma tu. Jaribio au usajili umeisha — gusa hapa kufungua Malipo.',
+  },
   dayLeft: { en: 'day left', sw: 'siku imebaki' },
   daysLeft: { en: 'days left', sw: 'siku zimebaki' },
   planPayMpesa: { en: 'pay with M-Pesa on the billing page', sw: 'lipa kwa M-Pesa kwenye ukurasa wa malipo' },

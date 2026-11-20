@@ -225,11 +225,15 @@ export default function ReportsPage() {
               </Button>
             </div>
             <VBars
-              points={daily.map((d) => ({
-                label: new Date(d.day).toLocaleDateString('en-KE', { day: 'numeric', month: 'short' }),
-                value: Number(d.net_sales),
-                color: Number(d.gross_profit) - Number(d.expenses) >= 0 ? undefined : '#F87171',
-              }))}
+              points={daily.map((d) => {
+                const np = Number(d.gross_profit) - Number(d.expenses)
+                return {
+                  label: new Date(d.day).toLocaleDateString('en-KE', { weekday: 'short', day: 'numeric', month: 'short' }),
+                  value: Number(d.net_sales),
+                  color: np >= 0 ? undefined : '#F87171',
+                  hint: `${d.sales_count} sale${Number(d.sales_count) === 1 ? '' : 's'} · profit KES ${money(np)}`,
+                }
+              })}
               format={(v) => `KES ${money(v)}`}
             />
             <div className="overflow-x-auto">
@@ -284,7 +288,16 @@ export default function ReportsPage() {
                 </Button>
               </div>
             </div>
-            {top.length > 0 && <HBars items={top.slice(0, 10).map((r) => ({ label: r.name, value: Number(r.revenue) }))} format={(v) => `KES ${money(v)}`} />}
+            {top.length > 0 && (
+              <HBars
+                items={top.slice(0, 10).map((r) => ({
+                  label: r.name,
+                  value: Number(r.revenue),
+                  hint: `${fmtQty(r.qty)} sold · profit KES ${money(r.profit)}`,
+                }))}
+                format={(v) => `KES ${money(v)}`}
+              />
+            )}
             {top.length === 0 ? (
               <p className="text-sm text-muted">No sales in this period.</p>
             ) : (
@@ -390,7 +403,16 @@ export default function ReportsPage() {
             </Button>
           </div>
           {stockRows.length > 0 && (
-            <HBars items={[...stockRows].sort((a, b) => Number(b.cost_value) - Number(a.cost_value)).map((r) => ({ label: r.category, value: Number(r.cost_value) }))} format={(v) => `KES ${money(v)}`} />
+            <HBars
+              items={[...stockRows]
+                .sort((a, b) => Number(b.cost_value) - Number(a.cost_value))
+                .map((r) => ({
+                  label: r.category,
+                  value: Number(r.cost_value),
+                  hint: `${r.items} products · selling KES ${money(r.retail_value)}`,
+                }))}
+              format={(v) => `KES ${money(v)}`}
+            />
           )}
           <div className="overflow-x-auto">
             <table className="w-full min-w-[30rem] text-left text-sm">
@@ -466,7 +488,14 @@ export default function ReportsPage() {
           {branches.length > 1 && (
             <Card className="space-y-3">
               <h2 className="text-xl font-bold">Branches compared</h2>
-              <HBars items={branchRows.map((r) => ({ label: r.name, value: Number(r.net_sales ?? 0) }))} format={(v) => `KES ${money(v)}`} />
+              <HBars
+                items={branchRows.map((r) => ({
+                  label: r.name,
+                  value: Number(r.net_sales ?? 0),
+                  hint: `${r.sales_count ?? 0} sales · profit KES ${money(r.net_profit)}`,
+                }))}
+                format={(v) => `KES ${money(v)}`}
+              />
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[34rem] text-left text-sm">
                   <thead className="text-xs text-muted">

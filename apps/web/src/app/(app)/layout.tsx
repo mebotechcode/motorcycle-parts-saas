@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { useSession } from '@/lib/session'
 import { Spinner } from '@/components/ui'
 import OfflineStatus from '@/components/OfflineStatus'
+import BillingLockBar from '@/components/BillingLockBar'
 import { setLang, t, useLang, type Lang } from '@/lib/i18n'
 import { adminAal } from '@/lib/mfa'
 
@@ -387,6 +388,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       <OfflineStatus />
+      <BillingLockBar />
 
       {/* ---------- mobile menu (slides in from the left) ---------- */}
       <div
